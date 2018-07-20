@@ -1,0 +1,4 @@
+-
+    type: luadoc
+    input-file: "LibRangeCheck-2.0/LibRangeCheck-2.0.lua"
+    output-page: API

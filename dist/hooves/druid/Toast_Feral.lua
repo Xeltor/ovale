@@ -222,7 +222,7 @@ AddFunction FeralCooldownsShortCdActions
   #the_unbound_force,if=buff.reckless_force.up|buff.tigers_fury.up
   if BuffPresent(reckless_force_buff) or BuffPresent(tigers_fury_buff) Spell(the_unbound_force)
   #blood_of_the_enemy,if=buff.tigers_fury.up
-  if BuffPresent(tigers_fury_buff) Spell(blood_of_the_enemy)
+#  if BuffPresent(tigers_fury_buff) Spell(blood_of_the_enemy)
   #feral_frenzy,if=combo_points=0
   if ComboPoints() == 0 Spell(feral_frenzy)
   #focused_azerite_beam,if=active_enemies>desired_targets|(raid_event.adds.in>90&energy.deficit>=50)

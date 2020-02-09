@@ -25,6 +25,7 @@ local registerPaladinRetributionHooves = __ovale_paladin.registerPaladinRetribut
 local registerRogueOutlawHooves = __ovale_rogue.registerRogueOutlawHooves
 local registerDemonHunterHavocHooves = __ovale_demonhunter.registerDemonHunterHavocHooves
 local registerPriestDisciplineToast = __ovale_priest.registerPriestDisciplineToast
+local registerMonkWindwalkerToast = __ovale_monk.registerMonkWindwalkerToast
 __exports.registerScripts = function(ovaleScripts)
 	registerMonkBrewmasterHooves(ovaleScripts)
 	registerDruidFeralToast(ovaleScripts)
@@ -35,6 +36,7 @@ __exports.registerScripts = function(ovaleScripts)
 	registerRogueOutlawHooves(ovaleScripts)
 	registerDemonHunterHavocHooves(ovaleScripts)
 	registerPriestDisciplineToast(ovaleScripts)
+	registerMonkWindwalkerToast(ovaleScripts)
 	-- For each created register link it here to ovaleScripts.
 	-- Example:
 	-- registerDruidFeralHooves(ovaleScripts)

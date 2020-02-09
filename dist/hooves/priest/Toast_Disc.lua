@@ -12,9 +12,11 @@ do
 	
 	AddIcon specialization=1 help=main
 	{
+	if target.InRange(shadow_word_pain) and HasFullControl() and target.Present() and not target.IsFriend()
+	{
 		#dmg rotation
-		if (Talent(purge_the_wicked_talent) and not target.DebuffPresent(purge_the_wicked_debuff)) Spell(purge_the_wicked)
-		if not Talent(purge_the_wicked_talent) and target.DebuffPresent(shadow_word_pain_debuff) Spell(shadow_word_pain)
+		if (Talent(purge_the_wicked_talent) and target.DebuffRefreshable(purge_the_wicked_debuff)) Spell(purge_the_wicked)
+		if not Talent(purge_the_wicked_talent) and target.DebuffRefreshable (shadow_word_pain_debuff) Spell(shadow_word_pain)
 		if (Speed() == 0) Spell(schism)
 		Spell(penance)
 		Spell(power_word_solace)
@@ -22,7 +24,7 @@ do
 		Spell(purge_the_wicked)
 	
 		#shield target
-	
+	}
 	}
 	
 	]]

@@ -17,7 +17,9 @@ local __ovale_warrior = LibStub:GetLibrary("ovale/scripts/ovale_warrior")
 -- Example:
 -- local registerDruidFeralHooves = __ovale_druid.registerDruidFeralHooves
 local registerDruidGuardianHooves = __ovale_druid.registerDruidGuardianHooves
+local registerDruidBalanceHooves = __ovale_druid.registerDruidBalanceHooves
 local registerDruidFeralToast = __ovale_druid.registerDruidFeralToast
+local registerDruidFeral83Toast = __ovale_druid.registerDruidFeral83Toast
 local registerMonkBrewmasterHooves = __ovale_monk.registerMonkBrewmasterHooves
 local registerWarriorProtectionHooves = __ovale_warrior.registerWarriorProtectionHooves
 local registerPaladinProtectionHooves = __ovale_paladin.registerPaladinProtectionHooves
@@ -26,10 +28,13 @@ local registerRogueOutlawHooves = __ovale_rogue.registerRogueOutlawHooves
 local registerDemonHunterHavocHooves = __ovale_demonhunter.registerDemonHunterHavocHooves
 local registerPriestDisciplineToast = __ovale_priest.registerPriestDisciplineToast
 local registerMonkWindwalkerToast = __ovale_monk.registerMonkWindwalkerToast
+local registerMonkMistweaverToast = __ovale_monk.registerMonkMistweaverToast
 __exports.registerScripts = function(ovaleScripts)
 	registerMonkBrewmasterHooves(ovaleScripts)
 	registerDruidFeralToast(ovaleScripts)
+	registerDruidFeral83Toast(ovaleScripts)
 	registerDruidGuardianHooves(ovaleScripts)
+	registerDruidBalanceHooves(ovaleScripts)
 	registerWarriorProtectionHooves(ovaleScripts)
 	registerPaladinProtectionHooves(ovaleScripts)
 	registerPaladinRetributionHooves(ovaleScripts)
@@ -37,6 +42,7 @@ __exports.registerScripts = function(ovaleScripts)
 	registerDemonHunterHavocHooves(ovaleScripts)
 	registerPriestDisciplineToast(ovaleScripts)
 	registerMonkWindwalkerToast(ovaleScripts)
+	registerMonkMistweaverToast(ovaleScripts)
 	-- For each created register link it here to ovaleScripts.
 	-- Example:
 	-- registerDruidFeralHooves(ovaleScripts)

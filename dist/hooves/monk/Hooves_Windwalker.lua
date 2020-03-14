@@ -269,7 +269,7 @@ AddFunction windwalkercdshortcdactions
    #reaping_flames
    #spell(reaping_flames_essence)
    #serenity,if=cooldown.rising_sun_kick.remains<=2|target.time_to_die<=12
-   #if spellcooldown(rising_sun_kick) <= 2 or target.timetodie() <= 12 spell(serenity)
+   if spellcooldown(rising_sun_kick) <= 2 or target.timetodie() <= 12 spell(serenity)
    #ripple_in_space
    #spell(ripple_in_space_essence)
   }

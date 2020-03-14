@@ -1,4 +1,4 @@
-local __exports = LibStub:NewLibrary("ovale/Pool", 80300)
+local __exports = LibStub:NewLibrary("ovale/Pool", 80201)
 if not __exports then return end
 local __class = LibStub:GetLibrary("tslib").newClass
 local assert = assert
@@ -9,10 +9,11 @@ local remove = table.remove
 local format = string.format
 __exports.OvalePool = __class(nil, {
     constructor = function(self, name)
-        self.pool = {}
+        self.pool = nil
         self.size = 0
         self.unused = 0
         self.name = name or "OvalePool"
+        self:Drain()
     end,
     Get = function(self)
         assert(self.pool)

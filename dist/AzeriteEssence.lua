@@ -1,4 +1,4 @@
-local __exports = LibStub:NewLibrary("ovale/AzeriteEssence", 80300)
+local __exports = LibStub:NewLibrary("ovale/AzeriteEssence", 80201)
 if not __exports then return end
 local __class = LibStub:GetLibrary("tslib").newClass
 local aceEvent = LibStub:GetLibrary("AceEvent-3.0", true)
@@ -74,10 +74,6 @@ __exports.OvaleAzeriteEssenceClass = __class(nil, {
     end,
     IsMinorEssence = function(self, essenceId)
         return self.self_essences[essenceId] ~= nil and true or false
-    end,
-    EssenceRank = function(self, essenceId)
-        local essence = self.self_essences[essenceId]
-        return essence ~= nil and essence.rank or 0
     end,
     DebugEssences = function(self)
         local output = {}

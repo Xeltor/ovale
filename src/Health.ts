@@ -198,9 +198,9 @@ export class OvaleHealthClass {
                 if (amount > 0) {
                     db[guid] = amount;
                 } else {
-                    delete db[guid];
-                    delete this.firstSeen[guid];
-                    delete this.lastUpdated[guid];
+                    db[guid] = undefined;
+                    this.firstSeen[guid] = undefined;
+                    this.lastUpdated[guid] = undefined;
                 }
             }
         }
@@ -218,26 +218,20 @@ export class OvaleHealthClass {
     UnitHealAbsorb(unitId: string, guid?: string) {
         return this.UnitAmount(UnitGetTotalHealAbsorbs, this.healAbsorb, unitId, guid);
     }
-    UnitAmount(func: (_: string) => number | undefined, db: LuaObj<number>, unitId: string, guid?: string): number {
+    UnitAmount(func: (_: string) => number, db: LuaObj<number>, unitId: string, guid?: string): number {
         let amount;
         if (unitId) {
             guid = guid || this.ovaleGuid.UnitGUID(unitId);
             if (guid) {
-                if ((unitId === "focus" || unitId === "target") && db[guid] !== undefined) {
-                    amount = db[guid];
+                if (unitId == "target" || unitId == "focus") {
+                    amount = db[guid] || 0;
                 } else {
                     amount = func(unitId);
-                    if (amount !== undefined) {
-                        db[guid] = amount;
-                    } else {
-                        amount = 0;
-                    }
+                    db[guid] = amount;
                 }
             } else {
                 amount = 0;
             }
-        } else {
-            amount = 0;
         }
         return amount;
     }
@@ -246,16 +240,16 @@ export class OvaleHealthClass {
         let timeToDie = INFINITY;
         guid = guid || this.ovaleGuid.UnitGUID(unitId);
         if (guid) {
-            let health = this.UnitHealth(unitId, guid) ||0;
+            let health = this.UnitHealth(unitId, guid);
             if (effectiveHealth) {
                 health = health + this.UnitAbsorb(unitId, guid) - this.UnitHealAbsorb(unitId, guid);
             }
             let maxHealth = this.UnitHealthMax(unitId, guid);
-            if (health && maxHealth > 0) {
+            if (health && maxHealth) {
                 if (health == 0) {
                     timeToDie = 0;
-                    delete this.firstSeen[guid];
-                    delete this.lastUpdated[guid];
+                    this.firstSeen[guid] = undefined;
+                    this.lastUpdated[guid] = undefined;
                 } else if (maxHealth > 5) {
                     let [firstSeen, lastUpdated] = [this.firstSeen[guid], this.lastUpdated[guid]];
                     let damage = this.totalDamage[guid] || 0;
@@ -269,7 +263,7 @@ export class OvaleHealthClass {
         this.profiler.StopProfiling("OvaleHealth_UnitTimeToDie");
         return timeToDie;
     }
-    RequireHealthPercentHandler = (spellId: number, atTime: number, requirement: string, tokens: Tokens, index: number, targetGUID: string | undefined): [boolean, string, number] => {
+    RequireHealthPercentHandler = (spellId: number, atTime: number, requirement: string, tokens: Tokens, index: number, targetGUID: string): [boolean, string, number] => {
         let verified = false;
         let threshold = <string>tokens[index];
         index = index + 1;
@@ -284,8 +278,7 @@ export class OvaleHealthClass {
             if (sub(requirement, 1, 7) == "target_") {
                 if (targetGUID) {
                     guid = targetGUID;
-                    const [result] = this.ovaleGuid.GUIDUnit(guid);
-                    unitId = result ||"target";
+                    [unitId] = this.ovaleGuid.GUIDUnit(guid);
                 } else {
                     unitId = this.baseState.next.defaultTarget || "target";
                 }
@@ -296,10 +289,8 @@ export class OvaleHealthClass {
             }
             guid = guid || this.ovaleGuid.UnitGUID(unitId);
             let health = this.UnitHealth(unitId, guid) || 0;
-            let maxHealth = this.UnitHealthMax(unitId, guid);
-            let healthPercent;
-            if (maxHealth === 0) healthPercent = 100;
-            else healthPercent = (health / maxHealth * 100) || 100;
+            let maxHealth = this.UnitHealthMax(unitId, guid) || 1;
+            let healthPercent = (health / maxHealth * 100) || 100;
             if (!isBang && healthPercent <= thresholdValue || isBang && healthPercent > thresholdValue) {
                 verified = true;
             }

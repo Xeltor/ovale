@@ -68,7 +68,7 @@ export function GetPoolInfo() {
     return [self_poolSize, self_poolUnused];
 }
 
-export class OvaleTimeSpan implements LuaArray<number | undefined> {
+export class OvaleTimeSpan implements LuaArray<number> {
     [key: number]: number;
     
     Release(){
@@ -91,7 +91,7 @@ export class OvaleTimeSpan implements LuaArray<number | undefined> {
             this[i] = A[i];
         }
         for (let i = count + 1; i <= lualength(this); i += 1) {
-            delete this[i];
+            this[i] = undefined;
         }
         return this;
     }
@@ -102,7 +102,7 @@ export class OvaleTimeSpan implements LuaArray<number | undefined> {
             this[i] = select(i, __args);
         }
         for (let i = count + 1; i <= lualength(this); i += 1) {
-            delete this[i];
+            this[i] = undefined;
         }
         return this;
     }
@@ -135,7 +135,7 @@ export class OvaleTimeSpan implements LuaArray<number | undefined> {
         }
         return false;
     }
-    NextTime(atTime: number):number | undefined {
+    NextTime(atTime: number):number {
         let A = this;
         for (let i = 1; i <= lualength(A); i += 2) {
             if (atTime < A[i]) {
@@ -183,7 +183,7 @@ export class OvaleTimeSpan implements LuaArray<number | undefined> {
                 countResult = k + 1;
             }
             for (let j = countResult + 1; j <= lualength(result); j += 1) {
-                delete result[j];
+                result[j] = undefined;
             }
         }
         return result;
@@ -234,7 +234,7 @@ export class OvaleTimeSpan implements LuaArray<number | undefined> {
                 }
             }
             for (let n = countResult + 1; n <= lualength(result); n += 1) {
-                delete result[n];
+                result[n] = undefined;
             }
         }
         return result;
@@ -293,11 +293,11 @@ export class OvaleTimeSpan implements LuaArray<number | undefined> {
             }
         }
         for (let n = countResult + 1; n <= lualength(result); n += 1) {
-            delete result[n];
+            result[n] = undefined;
         }
         return result;
     }
-    Union(B: OvaleTimeSpan, result?: OvaleTimeSpan) : OvaleTimeSpan {
+    Union(B: OvaleTimeSpan, result?: OvaleTimeSpan) {
         let A = this;
         let countA = lualength(A);
         let countB = B && lualength(B) || 0;
@@ -308,8 +308,6 @@ export class OvaleTimeSpan implements LuaArray<number | undefined> {
                 } else {
                     result = newTimeSpanFromArray(B);
                 }
-            } else {
-                result = EMPTY_SET;
             }
         } else if (countB == 0) {
             if (result) {
@@ -325,7 +323,7 @@ export class OvaleTimeSpan implements LuaArray<number | undefined> {
             let holdingA = true;
             let scanningA = false;
             while (true) {
-                let startA, endA, startB: number | undefined, endB: number | undefined;
+                let startA, endA, startB, endB;
                 if (i > countA && j > countB) {
                     [result[k], result[k + 1]] = [startTemp, endTemp];
                     countResult = k + 1;
@@ -344,8 +342,8 @@ export class OvaleTimeSpan implements LuaArray<number | undefined> {
                 } else {
                     [startB, endB] = [B[j], B[j + 1]];
                 }
-                let startCurrent = scanningA && startA || startB!;
-                let endCurrent = scanningA && endA || endB!;
+                let startCurrent = scanningA && startA || startB;
+                let endCurrent = scanningA && endA || endB;
                 let compare = CompareIntervals(startTemp, endTemp, startCurrent, endCurrent);
                 if (compare == 0) {
                     if (scanningA) {
@@ -407,7 +405,7 @@ export class OvaleTimeSpan implements LuaArray<number | undefined> {
                 }
             }
             for (let n = countResult + 1; n <= lualength(result); n += 1) {
-                delete result[n];
+                result[n] = undefined;
             }
         }
         return result;

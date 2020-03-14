@@ -1,4 +1,4 @@
-local __exports = LibStub:NewLibrary("ovale/Scripts", 80300)
+local __exports = LibStub:NewLibrary("ovale/Scripts", 80201)
 if not __exports then return end
 local __class = LibStub:GetLibrary("tslib").newClass
 local AceConfig = LibStub:GetLibrary("AceConfig-3.0", true)
@@ -47,9 +47,7 @@ __exports.OvaleScriptsClass = __class(nil, {
             end
             for i = 1, countSpecializations, 1 do
                 local specName = self.ovalePaperDoll:GetSpecialization(i)
-                if specName then
-                    self.ovaleOptions.db.profile.source[self.ovale.playerClass .. "_" .. specName] = self.ovaleOptions.db.profile.source[self.ovale.playerClass .. "_" .. specName] or self:GetDefaultScriptName(self.ovale.playerClass, specName)
-                end
+                self.ovaleOptions.db.profile.source[self.ovale.playerClass .. "_" .. specName] = self.ovaleOptions.db.profile.source[self.ovale.playerClass .. "_" .. specName] or self:GetDefaultScriptName(self.ovale.playerClass, specName)
             end
         end
         self.module = ovale:createModule("OvaleScripts", self.OnInitialize, self.OnDisable, aceEvent)
@@ -84,7 +82,7 @@ __exports.OvaleScriptsClass = __class(nil, {
                 if name == __exports.DEFAULT_NAME then
                     descriptionsTable[name] = script.desc .. " (" .. self:GetScriptName(name) .. ")"
                 else
-                    descriptionsTable[name] = script.desc or "No description"
+                    descriptionsTable[name] = script.desc
                 end
             end
         end
@@ -118,7 +116,7 @@ __exports.OvaleScriptsClass = __class(nil, {
             scClassName = "death_knight"
         end
         if  not name and specialization then
-            name = format("sc_t24_%s_%s", scClassName, specialization)
+            name = format("sc_t23_%s_%s", scClassName, specialization)
         end
         if  not (name and self.script[name]) then
             name = DISABLED_NAME
@@ -201,10 +199,7 @@ __exports.OvaleScriptsClass = __class(nil, {
                         local code = self:GetScript(self:getCurrentSpecScriptName())
                         self:RegisterScript(self.ovale.playerClass, nil, CUSTOM_NAME, CUSTOM_DESCRIPTION, code, "script")
                         self:setCurrentSpecScriptName(CUSTOM_NAME)
-                        local script = self:GetScript(CUSTOM_NAME)
-                        if script then
-                            self.ovaleOptions.db.profile.code = script
-                        end
+                        self.ovaleOptions.db.profile.code = self:GetScript(CUSTOM_NAME)
                         self.module:SendMessage("Ovale_ScriptChanged")
                     end
                 },

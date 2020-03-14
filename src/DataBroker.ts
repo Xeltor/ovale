@@ -28,6 +28,8 @@ let CLASS_ICONS = {
     ["WARLOCK"]: "Interface\\Icons\\ClassIcon_Warlock",
     ["WARRIOR"]: "Interface\\Icons\\ClassIcon_Warrior"
 }
+let self_menuFrame: UIFrame = undefined;
+let self_tooltipTitle: string = undefined;
 let defaultDB = {
     minimap: {}
 };
@@ -41,9 +43,6 @@ interface MenuItem {
 export class OvaleDataBrokerClass {
     private broker: any = undefined;
     private module: AceEvent & AceModule;
-
-    private menuFrame?: UIFrame;
-    private tooltipTitle?: string;
 
     constructor(
         private ovalePaperDoll: OvalePaperDollClass,
@@ -78,8 +77,8 @@ export class OvaleDataBrokerClass {
     }
 
     private OnTooltipShow = (tooltip: UIGameTooltip) => {
-        this.tooltipTitle = this.tooltipTitle || `${this.ovale.GetName()} ${this.ovaleVersion.version}`;
-        tooltip.SetText(this.tooltipTitle, 1, 1, 1);
+        self_tooltipTitle = self_tooltipTitle || `${this.ovale.GetName()} ${this.ovaleVersion.version}`;
+        tooltip.SetText(self_tooltipTitle, 1, 1, 1);
         tooltip.AddLine(L["Click to select the script."]);
         tooltip.AddLine(L["Middle-Click to toggle the script options panel."]);
         tooltip.AddLine(L["Right-Click for options."]);
@@ -105,8 +104,8 @@ export class OvaleDataBrokerClass {
                 }
                 insert(menu, menuItem);
             }
-            this.menuFrame = this.menuFrame || CreateFrame("Frame", "OvaleDataBroker_MenuFrame", UIParent, "UIDropDownMenuTemplate");
-            EasyMenu(menu, this.menuFrame, "cursor", 0, 0, "MENU");
+            self_menuFrame = self_menuFrame || CreateFrame("Frame", "OvaleDataBroker_MenuFrame", UIParent, "UIDropDownMenuTemplate");
+            EasyMenu(menu, self_menuFrame, "cursor", 0, 0, "MENU");
         } else if (button == "MiddleButton") {
             this.ovaleFrameModule.frame.ToggleOptions();
         } else if (button == "RightButton") {

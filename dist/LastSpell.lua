@@ -1,4 +1,4 @@
-local __exports = LibStub:NewLibrary("ovale/LastSpell", 80300)
+local __exports = LibStub:NewLibrary("ovale/LastSpell", 80201)
 if not __exports then return end
 local __class = LibStub:GetLibrary("tslib").newClass
 local __Pool = LibStub:GetLibrary("ovale/Pool")
@@ -6,22 +6,6 @@ local OvalePool = __Pool.OvalePool
 local pairs = pairs
 local remove = table.remove
 local insert = table.insert
-__exports.createSpellCast = function()
-    return {
-        spellId = 0,
-        stop = 0,
-        start = 0,
-        queued = 0,
-        hastePercent = 0,
-        meleeAttackSpeedPercent = 0,
-        rangedAttackSpeedPercent = 0,
-        spellCastSpeedPercent = 0,
-        masteryEffect = 0,
-        target = "unknown",
-        targetName = "target",
-        spellName = "Unknown spell"
-    }
-end
 __exports.self_pool = OvalePool("OvaleFuture_pool")
 __exports.LastSpell = __class(nil, {
     LastInFlightSpell = function(self)
@@ -47,7 +31,7 @@ __exports.LastSpell = __class(nil, {
         for _, mod in pairs(self.modules) do
             local func = mod.CopySpellcastInfo
             if func then
-                func(spellcast, dest)
+                func(mod, spellcast, dest)
             end
         end
     end,
@@ -84,7 +68,9 @@ __exports.LastSpell = __class(nil, {
     end,
     constructor = function(self)
         self.lastSpellcast = nil
-        self.lastGCDSpellcast = __exports.createSpellCast()
+        self.lastGCDSpellcast = {
+            spellId = 0
+        }
         self.queue = {}
         self.modules = {}
     end

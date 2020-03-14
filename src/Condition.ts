@@ -5,7 +5,7 @@ import { PositionalParameters, NamedParameters } from "./AST";
 import { AuraType } from "./Data";
 let INFINITY = huge;
 
-export type ConditionResult = [number?, number?, number?, number?, number?];
+export type ConditionResult = [number, number, number?, number?, number?];
 export type ConditionFunction = (positionalParams: PositionalParameters, namedParams: NamedParameters, atTime: number) => ConditionResult;
 
 export type ComparatorId = "atLeast" | "atMost" | "equal" | "less" | "more";
@@ -44,7 +44,7 @@ export class OvaleConditionClass {
         }
     }
     UnregisterCondition(name: string) {
-        delete this.conditions[name];
+        this.conditions[name] = undefined;
     }
     IsCondition(name: string) {
         return (this.conditions[name] != undefined);
@@ -60,14 +60,14 @@ export class OvaleConditionClass {
     }
 
     
-    ParseCondition(positionalParams: PositionalParameters, namedParams: NamedParameters, defaultTarget?: string):[string, AuraType | undefined, boolean] {
+    ParseCondition(positionalParams: PositionalParameters, namedParams: NamedParameters, defaultTarget?: string):[string, AuraType, boolean] {
         let target = namedParams.target || defaultTarget || "player";
         namedParams.target = namedParams.target || target;
 
         if (target === "cycle" || target === "target") {
             target = this.baseState.next.defaultTarget;
         }
-        let filter: AuraType | undefined;
+        let filter: AuraType;
         if (namedParams.filter) {
             if (namedParams.filter == "debuff") {
                 filter = "HARMFUL";
@@ -98,16 +98,16 @@ export function TestBoolean(a: boolean, yesno: "yes" | "no"): ConditionResult {
             return [0, INFINITY];
         }
     }
-    return [];
+    return undefined;
 }
 
 export function ReturnValue(value: number, origin: number, rate: number): ConditionResult {
     return [0, INFINITY, value, origin, rate];
 }
 
-export function TestValue(start: number, ending: number, value: number | undefined, origin: number | undefined, rate: number | undefined, comparator: string | undefined, limit: number | undefined): ConditionResult {
-    if (value === undefined || origin === undefined || rate === undefined) {
-        return [];
+export function TestValue(start: number, ending: number, value: number, origin: number, rate: number, comparator: string, limit: number): ConditionResult {
+    if (!value || !origin || !rate) {
+        return undefined;
     }
     start = start || 0;
     ending = ending || INFINITY;
@@ -118,9 +118,9 @@ export function TestValue(start: number, ending: number, value: number | undefin
             return [0, INFINITY, 0, 0, 0];
         }
     } else if (!isComparator(comparator)) {
-        return [];
+        return undefined;
     } else if (!limit) {
-        return [];
+        return undefined;
     } else if (rate == 0) {
         if ((comparator == "less" && value < limit) || (comparator == "atMost" && value <= limit) || (comparator == "equal" && value == limit) || (comparator == "atLeast" && value >= limit) || (comparator == "more" && value > limit)) {
             return [start, ending];
@@ -134,9 +134,9 @@ export function TestValue(start: number, ending: number, value: number | undefin
         start = (start > t) && start || t;
         return [start, INFINITY];
     }
-    return [];
+    return undefined;
 }
 
-export function Compare(value: number, comparator: string | undefined, limit: number |undefined): ConditionResult {
+export function Compare(value: number, comparator: string, limit: number): ConditionResult {
     return TestValue(0, INFINITY, value, 0, 0, comparator, limit);
 }

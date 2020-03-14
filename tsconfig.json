@@ -5,9 +5,9 @@
     "noImplicitAny": true,
     "outDir": "dist",
     "rootDir": "src",
-    "inlineSourceMap": true,
+    "sourceMap": true,
     "noUnusedLocals": true,
-    "strict": true
+    "strict": false
   },
   "exclude": [
     "node_modules",

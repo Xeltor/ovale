@@ -1,9 +1,8 @@
-local __exports = LibStub:NewLibrary("ovale/simulationcraft/definitions", 80300)
+local __exports = LibStub:NewLibrary("ovale/simulationcraft/definitions", 80201)
 if not __exports then return end
 local __class = LibStub:GetLibrary("tslib").newClass
 local pairs = pairs
 local ipairs = ipairs
-local kpairs = pairs
 __exports.interruptsClasses = {
     ["mind_freeze"] = "DEATHKNIGHT",
     ["pummel"] = "WARRIOR",
@@ -127,7 +126,7 @@ __exports.classInfos = {
     }
 }
 __exports.CHARACTER_PROPERTY = {
-    ["active_enemies"] = "Enemies(tagged=1)",
+    ["active_enemies"] = "Enemies()",
     ["astral_power"] = "AstralPower()",
     ["astral_power.deficit"] = "AstralPowerDeficit()",
     ["blade_dance_worth_using"] = "0",
@@ -150,16 +149,15 @@ __exports.CHARACTER_PROPERTY = {
     ["darkglare_no_de"] = "NotDeDemons(darkglare)",
     ["death_and_decay.ticking"] = "BuffPresent(death_and_decay)",
     ["death_sweep_worth_using"] = "0",
-    ["death_knight.disable_aotd"] = "0",
     ["delay"] = "0",
     ["demonic_fury"] = "DemonicFury()",
-    ["desired_targets"] = "5",
+    ["desired_targets"] = "Enemies(tagged=1)",
     ["doomguard_no_de"] = "NotDeDemons(doomguard)",
     ["dreadstalker_no_de"] = "NotDeDemons(dreadstalker)",
     ["dreadstalker_remaining_duration"] = "DemonDuration(dreadstalker)",
     ["eclipse_change"] = "TimeToEclipse()",
     ["eclipse_energy"] = "EclipseEnergy()",
-    ["enemies"] = "Enemies(tagged=1)",
+    ["enemies"] = "Enemies()",
     ["energy"] = "Energy()",
     ["energy.deficit"] = "EnergyDeficit()",
     ["energy.max"] = "MaxEnergy()",
@@ -183,7 +181,6 @@ __exports.CHARACTER_PROPERTY = {
     ["health.percent"] = "HealthPercent()",
     ["holy_power"] = "HolyPower()",
     ["incanters_flow_time_to.5.up"] = "StackTimeTo(incanters_flow_buff 5 up)",
-    ["incanters_flow_time_to.5.any"] = "StackTimeTo(incanters_flow_buff 5 any)",
     ["incanters_flow_time_to.4.down"] = "StackTimeTo(incanters_flow_buff 4 down)",
     ["infernal_no_de"] = "NotDeDemons(infernal)",
     ["insanity"] = "Insanity()",
@@ -202,7 +199,6 @@ __exports.CHARACTER_PROPERTY = {
     ["pain"] = "Pain()",
     ["pain.deficit"] = "PainDeficit()",
     ["pet_count"] = "Demons()",
-    ["pet.apoc_ghoul.active"] = "0",
     ["rage"] = "Rage()",
     ["rage.deficit"] = "RageDeficit()",
     ["rage.max"] = "MaxRage()",
@@ -225,16 +221,13 @@ __exports.CHARACTER_PROPERTY = {
     ["stealthed"] = "Stealthed()",
     ["stealthed.all"] = "Stealthed()",
     ["stealthed.rogue"] = "Stealthed()",
-    ["target.debuff.casting.react"] = "target.Casting(harmful)",
     ["time"] = "TimeInCombat()",
     ["time_to_20pct"] = "TimeToHealthPercent(20)",
-    ["time_to_pct_30"] = "TimeToHealthPercent(30)",
     ["time_to_die"] = "TimeToDie()",
     ["time_to_die.remains"] = "TimeToDie()",
     ["time_to_shard"] = "TimeToShard()",
     ["time_to_sht.4"] = "100",
     ["time_to_sht.5"] = "100",
-    ["variable.disable_combustion"] = "0",
     ["wild_imp_count"] = "Demons(wild_imp)",
     ["wild_imp_no_de"] = "NotDeDemons(wild_imp)",
     ["wild_imp_remaining_duration"] = "DemonDuration(wild_imp)",
@@ -344,7 +337,7 @@ __exports.CONSUMABLE_ITEMS = {
     ["augmentation"] = true
 }
 do
-    for keyword, value in kpairs(__exports.MODIFIER_KEYWORD) do
+    for keyword, value in pairs(__exports.MODIFIER_KEYWORD) do
         __exports.KEYWORD[keyword] = value
     end
     for keyword, value in pairs(__exports.FUNCTION_KEYWORD) do
@@ -442,11 +435,6 @@ __exports.BINARY_OPERATOR = {
         [1] = "arithmetic",
         [2] = 25,
         [3] = "associative"
-    },
-    ["<?"] = {
-        [1] = "arithmetic",
-        [2] = 25,
-        [3] = "associative"
     }
 }
 __exports.OPTIONAL_SKILLS = {
@@ -474,12 +462,25 @@ __exports.OPTIONAL_SKILLS = {
     ["time_warp"] = {
         class = "MAGE"
     },
+    ["storm_earth_and_fire"] = {
+        class = "MONK",
+        default = true
+    },
+    ["chi_burst"] = {
+        class = "MONK",
+        default = true
+    },
     ["touch_of_karma"] = {
         class = "MONK",
         default = false
     },
     ["flying_serpent_kick"] = {
         class = "MONK",
+        default = true
+    },
+    ["vanish"] = {
+        class = "ROGUE",
+        specialization = "assassination",
         default = true
     },
     ["blade_flurry"] = {
@@ -510,24 +511,13 @@ __exports.checkOptionalSkill = function(action, className, specialization)
     return true
 end
 __exports.Annotation = __class(nil, {
-    constructor = function(self, ovaleData, name, classId, specialization)
+    constructor = function(self, ovaleData)
         self.ovaleData = ovaleData
-        self.name = name
-        self.classId = classId
-        self.specialization = specialization
-        self.consumables = {}
-        self.taggedFunctionName = {}
         self.dictionary = {}
-        self.variable = {}
-        self.symbolList = {}
-        self.astAnnotation = {
-            nodeList = {},
-            definition = self.dictionary
-        }
     end,
     AddSymbol = function(self, symbol)
         local symbolTable = self.symbolTable or {}
-        local symbolList = self.symbolList
+        local symbolList = self.symbolList or {}
         if  not symbolTable[symbol] and  not self.ovaleData.DEFAULT_SPELL_LIST[symbol] then
             symbolTable[symbol] = true
             symbolList[#symbolList + 1] = symbol

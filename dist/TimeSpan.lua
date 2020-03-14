@@ -1,4 +1,4 @@
-local __exports = LibStub:NewLibrary("ovale/TimeSpan", 80300)
+local __exports = LibStub:NewLibrary("ovale/TimeSpan", 80201)
 if not __exports then return end
 local __class = LibStub:GetLibrary("tslib").newClass
 local select = select
@@ -298,8 +298,6 @@ __exports.OvaleTimeSpan = __class(nil, {
                 else
                     result = __exports.newTimeSpanFromArray(B)
                 end
-            else
-                result = __exports.EMPTY_SET
             end
         elseif countB == 0 then
             if result then

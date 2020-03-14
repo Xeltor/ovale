@@ -1,4 +1,4 @@
-local __exports = LibStub:NewLibrary("ovale/scripts/ovale_trinkets_mop", 80300)
+local __exports = LibStub:NewLibrary("ovale/scripts/ovale_trinkets_mop", 80201)
 if not __exports then return end
 __exports.registerMopTrinkets = function(OvaleScripts)
     local name = "ovale_trinkets_mop"

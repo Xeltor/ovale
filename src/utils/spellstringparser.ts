@@ -8,15 +8,14 @@ function parseToken(token: string, spell: SpellData, spellDataById: Map<number, 
     const otherSpellDesc = token.match(/^@spelldesc(\d+)$/);
     if (otherSpellDesc) {
         const otherSpell = spellDataById.get(parseInt(otherSpellDesc[1]));
-        if (otherSpell && otherSpell.desc && otherSpell !== spell) return parseDescription(otherSpell.desc, otherSpell, spellDataById);
+        if (otherSpell && otherSpell !== spell) return parseDescription(otherSpell.desc, otherSpell, spellDataById);
     }
 
     const reference = token.match(/^\d+/);
     if (reference) {
         token = token.substring(reference[0].length);
-        const referenceSpell = spellDataById.get(parseInt(reference[0]));
-        if (!referenceSpell) return undefined;
-        spell = referenceSpell;
+        spell = spellDataById.get(parseInt(reference[0]));
+        if (!spell) return undefined;
     }
     if (token === 'd') {
         return getDuration(spell.duration);

@@ -33,7 +33,7 @@ export class OvaleSpellsClass implements StateModule {
         this.requirement.UnregisterRequirement("spellcount_max");
         this.requirement.UnregisterRequirement("spellcount_min");
     }
-    GetCastTime(spellId: number): number | undefined {
+    GetCastTime(spellId: number): number {
         if (spellId) {
             let [name, , , castTime] = this.OvaleSpellBook.GetSpellInfo(spellId);
             if (name) {
@@ -43,7 +43,7 @@ export class OvaleSpellsClass implements StateModule {
                     castTime = 0;
                 }
             } else {
-                return undefined;
+                castTime = undefined;
             }
             return castTime;
         }
@@ -57,35 +57,30 @@ export class OvaleSpellsClass implements StateModule {
             return spellCount;
         } else {
             let spellName = this.OvaleSpellBook.GetSpellName(spellId);
-            if (spellName) {
-                let spellCount = GetSpellCount(spellName);
-                this.tracer.Debug("GetSpellCount: spellName=%s for spellId=%s ==> spellCount=%s", spellName, spellId, spellCount);
-                return spellCount;
-            }
-            return 0;
+            let spellCount = GetSpellCount(spellName);
+            this.tracer.Debug("GetSpellCount: spellName=%s for spellId=%s ==> spellCount=%s", spellName, spellId, spellCount);
+            return spellCount;
         }
     }
 
     IsSpellInRange(spellId: number, unitId: string): boolean | undefined {
         let [index, bookType] = this.OvaleSpellBook.GetSpellBookIndex(spellId);
-        let returnValue;
+        let returnValue: number = undefined;
         if (index && bookType) {
             returnValue = IsSpellInRange(index, bookType, unitId);
         } else if (this.OvaleSpellBook.IsKnownSpell(spellId)) {
             let name = this.OvaleSpellBook.GetSpellName(spellId);
-            if (name) returnValue = IsSpellInRange(name, unitId);
+            returnValue = IsSpellInRange(name, unitId);
         }
         if ((returnValue == 1 && spellId == WARRIOR_INCERCEPT_SPELLID)) {
             return (UnitIsFriend("player", unitId) || this.IsSpellInRange(WARRIOR_HEROICTHROW_SPELLID, unitId));
         }
-        if (returnValue === 1) return true;
-        if (returnValue === 0) return false;
-        return undefined;
+        return (returnValue == 1 && true) || (returnValue == 0 && false) || (returnValue === undefined && undefined);
     }
     
-    private RequireSpellCountHandler = (spellId: number, atTime: number, requirement: string, tokens: Tokens, index: number, targetGUID: string | undefined):[boolean, string, number] => {
+    private RequireSpellCountHandler = (spellId: number, atTime: number, requirement: string, tokens: Tokens, index: number, targetGUID: string):[boolean, string, number] => {
         let verified = false;
-        let countString;
+        let countString: string;
         if (index) {
             countString = <string>tokens[index];
             index = index + 1;
@@ -122,12 +117,12 @@ export class OvaleSpellsClass implements StateModule {
         this.profiler.StopProfiling("OvaleSpellBook_state_IsUsableItem");
         return isUsable;
     }
-    IsUsableSpell(spellId: number, atTime: number, targetGUID: string | undefined): [boolean, boolean] {
+    IsUsableSpell(spellId: number, atTime: number, targetGUID: string): [boolean, boolean] {
         this.profiler.StartProfiling("OvaleSpellBook_state_IsUsableSpell");
         let isUsable = this.OvaleSpellBook.IsKnownSpell(spellId);
         let noMana = false;
         let si = this.ovaleData.spellInfo[spellId];
-        let requirement: string | undefined;
+        let requirement: string;
         if (si) {
             if (isUsable) {
                 let unusable = this.ovaleData.GetSpellInfoProperty(spellId, atTime, "unusable", targetGUID);
@@ -139,7 +134,7 @@ export class OvaleSpellsClass implements StateModule {
             if (isUsable) {
                 [isUsable, requirement] = this.ovaleData.CheckSpellInfo(spellId, atTime, targetGUID);
                 if (!isUsable) {
-                    noMana = PRIMARY_POWER[requirement as PowerType] || false;
+                    noMana = PRIMARY_POWER[requirement as PowerType];
                     if (noMana) {
                         this.tracer.Log("Spell ID '%s' does not have enough %s.", spellId, requirement);
                     } else {
@@ -153,7 +148,6 @@ export class OvaleSpellsClass implements StateModule {
                 return IsUsableSpell(index, bookType);
             } else if (this.OvaleSpellBook.IsKnownSpell(spellId)) {
                 let name = this.OvaleSpellBook.GetSpellName(spellId);
-                if (!name) return [false, false];
                 return IsUsableSpell(name);
             }
         }

@@ -43,7 +43,6 @@ AddIcon specialization=3 help=main
 	# Rotation
 	if Stance(2) and target.InRange(rake) and HasFullControl() and target.Present()
 	{
-	
 		#cat rotation
 		if BuffPresent(prowl_buff) or BuffPresent(shadowmeld_buff) Spell(rake)
 		#ferocious_bite,target_if=dot.rip.ticking&dot.rip.remains<3&target.time_to_die>10&(talent.sabertooth.enabled)
@@ -52,12 +51,7 @@ AddIcon specialization=3 help=main
 		{
 			if not target.DebuffPresent(rip_debuff) or target.DebuffRemaining(rip_debuff) <= BaseDuration(rip_debuff) * 0.3 or target.DebuffRemaining(rip_debuff) <= BaseDuration(rip_debuff) * 0.8 and PersistentMultiplier(rip_debuff) > target.DebuffPersistentMultiplier(rip_debuff) and target.TimeToDie() > 8 Spell(rip)
 		}
-		if ComboPoints() >3 and ComboPoints < 5
-		{
-			Spell(rake)
-		}
 		if not target.DebuffPresent(rake_debuff)or target.DebuffRemaining(rake_debuff) <= BaseDuration(rake_debuff) * 0.3 Spell(rake)
-		if target.DebuffPresent(rake_debuff) and target.DebuffPresent(rip_debuff) Spell(bear_form)
 		if target.DebuffRemaining(rake_debuff) > { PowerCost(shred) + PowerCost(rake) - Energy() } / EnergyRegenRate() Spell(shred)
 	}
 	
@@ -138,7 +132,7 @@ AddFunction GuardianDefaultMainActions
   #pulverize,target_if=dot.thrash_bear.stack=dot.thrash_bear.max_stacks
   if target.DebuffStacks(thrash_bear_debuff) == MaxStacks(thrash_bear_debuff) and target.DebuffGain(thrash_bear_debuff) <= BaseDuration(thrash_bear_debuff) Spell(pulverize)
   #moonfire,target_if=dot.moonfire.refreshable&active_enemies<2
-  if target.DebuffRefreshable(moonfire_debuff) and enemies(tagged=1) < 2 Spell(moonfire)
+  if target.DebuffRefreshable(moonfire) and enemies(tagged=1) < 2 Spell(moonfire)
   #swipe,if=buff.incarnation.down&active_enemies>4
   if BuffExpires(incarnation_guardian_of_ursoc_buff) and enemies(tagged=1) > 4 Spell(swipe_bear)
   #mangle,if=dot.thrash_bear.ticking

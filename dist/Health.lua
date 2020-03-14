@@ -1,4 +1,4 @@
-local __exports = LibStub:NewLibrary("ovale/Health", 80300)
+local __exports = LibStub:NewLibrary("ovale/Health", 80201)
 if not __exports then return end
 local __class = LibStub:GetLibrary("tslib").newClass
 local aceEvent = LibStub:GetLibrary("AceEvent-3.0", true)
@@ -198,8 +198,7 @@ __exports.OvaleHealthClass = __class(nil, {
                 if sub(requirement, 1, 7) == "target_" then
                     if targetGUID then
                         guid = targetGUID
-                        local result = self.ovaleGuid:GUIDUnit(guid)
-                        unitId = result or "target"
+                        unitId = self.ovaleGuid:GUIDUnit(guid)
                     else
                         unitId = self.baseState.next.defaultTarget or "target"
                     end
@@ -210,13 +209,8 @@ __exports.OvaleHealthClass = __class(nil, {
                 end
                 guid = guid or self.ovaleGuid:UnitGUID(unitId)
                 local health = self:UnitHealth(unitId, guid) or 0
-                local maxHealth = self:UnitHealthMax(unitId, guid)
-                local healthPercent
-                if maxHealth == 0 then
-                    healthPercent = 100
-                else
-                    healthPercent = (health / maxHealth * 100) or 100
-                end
+                local maxHealth = self:UnitHealthMax(unitId, guid) or 1
+                local healthPercent = (health / maxHealth * 100) or 100
                 if  not isBang and healthPercent <= thresholdValue or isBang and healthPercent > thresholdValue then
                     verified = true
                 end
@@ -252,21 +246,15 @@ __exports.OvaleHealthClass = __class(nil, {
         if unitId then
             guid = guid or self.ovaleGuid:UnitGUID(unitId)
             if guid then
-                if (unitId == "focus" or unitId == "target") and db[guid] ~= nil then
-                    amount = db[guid]
+                if unitId == "target" or unitId == "focus" then
+                    amount = db[guid] or 0
                 else
                     amount = func(unitId)
-                    if amount ~= nil then
-                        db[guid] = amount
-                    else
-                        amount = 0
-                    end
+                    db[guid] = amount
                 end
             else
                 amount = 0
             end
-        else
-            amount = 0
         end
         return amount
     end,
@@ -275,12 +263,12 @@ __exports.OvaleHealthClass = __class(nil, {
         local timeToDie = INFINITY
         guid = guid or self.ovaleGuid:UnitGUID(unitId)
         if guid then
-            local health = self:UnitHealth(unitId, guid) or 0
+            local health = self:UnitHealth(unitId, guid)
             if effectiveHealth then
                 health = health + self:UnitAbsorb(unitId, guid) - self:UnitHealAbsorb(unitId, guid)
             end
             local maxHealth = self:UnitHealthMax(unitId, guid)
-            if health and maxHealth > 0 then
+            if health and maxHealth then
                 if health == 0 then
                     timeToDie = 0
                     self.firstSeen[guid] = nil

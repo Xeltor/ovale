@@ -54,14 +54,14 @@ export class OvaleEquipmentClass {
     equippedItemById: LuaArray<number> = {}
     equippedItemBySlot: LuaObj<number> = {}
     // equippedItemLevels = {}
-    mainHandItemType?: WeaponType;
-    offHandItemType?: WeaponType;
+    mainHandItemType: WeaponType = undefined;
+    offHandItemType: WeaponType = undefined;
     mainHandDPS = 0
     offHandDPS = 0
     armorSetCount = {}
     // mainHandWeaponSpeed = 0;
     // offHandWeaponSpeed = 0;
-    lastChangedSlot?:number = undefined;
+    lastChangedSlot:number = undefined;
     output: LuaArray<string> = {}
     
     debugOptions = {
@@ -131,7 +131,7 @@ export class OvaleEquipmentClass {
         */
         return 0;
     }
-    GetEquippedItemBySlotName(slotName: SlotName):number | undefined {
+    GetEquippedItemBySlotName(slotName: SlotName):number {
         if (slotName) {
             let slotId = OVALE_SLOTID_BY_SLOTNAME[slotName];
             if (slotId != undefined) {
@@ -169,7 +169,6 @@ export class OvaleEquipmentClass {
         return this.equippedItemById[itemId] && true || false;
     } 
     HasMainHandWeapon(handedness?: number) {
-        if (!this.mainHandItemType) return false;
         if (handedness) {
             if (handedness == 1) {
                 return OVALE_ONE_HANDED_WEAPON[this.mainHandItemType];
@@ -182,7 +181,6 @@ export class OvaleEquipmentClass {
         return false;
     } 
     HasOffHandWeapon(handedness?: number) {
-        if (!this.offHandItemType) return false;
         if (handedness) {
             if (handedness == 1) {
                 return OVALE_ONE_HANDED_WEAPON[this.offHandItemType];
@@ -198,7 +196,7 @@ export class OvaleEquipmentClass {
         return this.offHandItemType == "INVTYPE_SHIELD";
     }
     HasRangedWeapon() {
-        return this.mainHandItemType && OVALE_RANGED_WEAPON[this.mainHandItemType];
+        return OVALE_RANGED_WEAPON[this.mainHandItemType];
     }
     HasTrinket(itemId: number) {
         return this.HasEquippedItem(itemId);
@@ -212,19 +210,19 @@ export class OvaleEquipmentClass {
         }
         if (slotId) {
             if (slotId == OVALE_SLOTID_BY_SLOTNAME["MainHandSlot"]) {
-                return this.mainHandItemType && OVALE_ONE_HANDED_WEAPON[this.mainHandItemType];
+                return OVALE_ONE_HANDED_WEAPON[this.mainHandItemType];
             } else if (slotId == OVALE_SLOTID_BY_SLOTNAME["SecondaryHandSlot"]) {
-                return this.offHandItemType && OVALE_ONE_HANDED_WEAPON[this.offHandItemType];
+                return OVALE_ONE_HANDED_WEAPON[this.offHandItemType];
             }
         } else {
-            return this.mainHandItemType && OVALE_ONE_HANDED_WEAPON[this.mainHandItemType] || this.offHandItemType && OVALE_ONE_HANDED_WEAPON[this.offHandItemType];
+            return OVALE_ONE_HANDED_WEAPON[this.mainHandItemType] || OVALE_ONE_HANDED_WEAPON[this.offHandItemType];
         }
         return false;
     } 
     UpdateItemBySlot(slotId: number) {
         let prevItemId = this.equippedItemBySlot[slotId];
         if (prevItemId) {
-            delete this.equippedItemById[prevItemId];
+            this.equippedItemById[prevItemId] = undefined;
             //this.equippedItemLevels[prevItemId] = undefined;
         }
         let newItemId = GetInventoryItemID("player", slotId);
@@ -243,7 +241,7 @@ export class OvaleEquipmentClass {
             }
             
         } else {
-            delete this.equippedItemBySlot[slotId];
+            this.equippedItemBySlot[slotId] = undefined;
             
             if (slotId == OVALE_SLOTID_BY_SLOTNAME["MainHandSlot"]) {
                 this.mainHandItemType = undefined;
@@ -265,7 +263,7 @@ export class OvaleEquipmentClass {
         if (itemLink) {
             let stats = GetItemStats(itemLink);
             if (stats) {
-                dps = stats["ITEM_MOD_DAMAGE_PER_SECOND_SHORT"] || 0;
+                dps = stats["ITEM_MOD_DAMAGE_PER_SECOND_SHORT"];
             }
         }
         return [<WeaponType>itemEquipLoc, dps]

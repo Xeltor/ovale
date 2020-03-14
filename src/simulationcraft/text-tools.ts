@@ -1,7 +1,8 @@
-import { LuaArray, tonumber, setmetatable, rawset, type, tostring, pairs } from "@wowts/lua";
+import { LuaArray, tonumber, setmetatable, rawset, type, tostring, pairs, lualength, truthy } from "@wowts/lua";
 import { format, gsub, upper, lower, match } from "@wowts/string";
 import { Annotation } from "./definitions";
 import { OvalePool } from "../Pool";
+import { concat } from "@wowts/table";
 
 export let INDENT: LuaArray<string> = {}
 {
@@ -70,26 +71,54 @@ export function CamelCase(s: string) {
     return gsub(tc, "[%s_]", "");
 }
 
-export function LowerSpecialization(annotation: Annotation) {
-    return lower(annotation.specialization);
+export function CamelSpecialization(annotation: Annotation) {
+    let output = self_outputPool.Get();
+    let [profileName, className, specialization] = [annotation.name, annotation.class, annotation.specialization];
+    if (specialization) {
+        output[lualength(output) + 1] = specialization;
+    }
+    if (truthy(match(profileName, "_1[hH]_"))) {
+        if (className == "DEATHKNIGHT" && specialization == "frost") {
+            output[lualength(output) + 1] = "dual wield";
+        } else if (className == "WARRIOR" && specialization == "fury") {
+            output[lualength(output) + 1] = "single minded fury";
+        }
+    } else if (truthy(match(profileName, "_2[hH]_"))) {
+        if (className == "DEATHKNIGHT" && specialization == "frost") {
+            output[lualength(output) + 1] = "two hander";
+        } else if (className == "WARRIOR" && specialization == "fury") {
+            output[lualength(output) + 1] = "titans grip";
+        }
+    } else if (truthy(match(profileName, "_[gG]ladiator_"))) {
+        output[lualength(output) + 1] = "gladiator";
+    }
+    let outputString = CamelCase(concat(output, " "));
+    self_outputPool.Release(output);
+    return outputString;
 }
 
 
 export function OvaleFunctionName(name: string, annotation: Annotation) {
-    let functionName = lower(`${name}actions`);
+    let functionName = CamelCase(`${name} actions`);
     if (annotation.specialization) {
-        functionName = `${LowerSpecialization(annotation)}${functionName}`;
+        functionName = `${CamelSpecialization(annotation)}${functionName}`;
     }
     return functionName;
 }
 
 
-export function OvaleTaggedFunctionName(name: string, tag: string): [string?, string?] {
-    let bodyName, conditionName;
-    let [prefix, suffix] = match(name, "([a-z]%w+)(actions)$");
+export function OvaleTaggedFunctionName(name: string, tag: string) {
+    let bodyName: string, conditionName: string;
+    let [prefix, suffix] = match(name, "([A-Z]%w+)(Actions)");
     if (prefix && suffix) {
-        bodyName = lower(`${prefix}${tag}${suffix}`);
-        conditionName = lower(`${prefix}${tag}postconditions`);
+        let camelTag;
+        if (tag == "shortcd") {
+            camelTag = "ShortCd";
+        } else {
+            camelTag = CamelCase(tag);
+        }
+        bodyName = `${prefix}${camelTag}${suffix}`;
+        conditionName = `${prefix}${camelTag}PostConditions`;
     }
     return [bodyName, conditionName];
 }

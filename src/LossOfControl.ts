@@ -17,7 +17,7 @@ interface LossOfControlEventInfo{
 }
 
 export class OvaleLossOfControlClass implements StateModule {
-	private lossOfControlHistory: LuaArray<LossOfControlEventInfo> = {};
+	private lossOfControlHistory: LuaArray<LossOfControlEventInfo>;
 	private module: AceModule & AceEvent;
 	private tracer: Tracer;
 
@@ -28,7 +28,8 @@ export class OvaleLossOfControlClass implements StateModule {
 
 	private OnInitialize = () => {
 		this.tracer.Debug("Enabled LossOfControl module");
-		this.module.RegisterEvent("LOSS_OF_CONTROL_ADDED", this.LOSS_OF_CONTROL_ADDED);
+		this.lossOfControlHistory = {};
+        this.module.RegisterEvent("LOSS_OF_CONTROL_ADDED", this.LOSS_OF_CONTROL_ADDED);
         this.requirement.RegisterRequirement("lossofcontrol", this.RequireLossOfControlHandler);
     }
     private OnDisable = () => {
@@ -48,7 +49,7 @@ export class OvaleLossOfControlClass implements StateModule {
 		}
 		insert(this.lossOfControlHistory, data);
 	}
-	RequireLossOfControlHandler = (spellId: number, atTime: number, requirement:string, tokens: Tokens, index: number, targetGUID: string | undefined):[boolean, string, number] => {
+	RequireLossOfControlHandler = (spellId: number, atTime: number, requirement:string, tokens: Tokens, index: number, targetGUID: string):[boolean, string, number] => {
 		let verified: boolean = false;
 		let locType = <string>tokens[index];
 		index = index + 1;
@@ -68,7 +69,7 @@ export class OvaleLossOfControlClass implements StateModule {
 		}
 		return [verified, requirement, index];
 	}
-	HasLossOfControl = (locType: string, atTime: number) => {
+	HasLossOfControl = function(locType: string, atTime: number) {
 		let lowestStartTime: number|undefined = undefined;
 		let highestEndTime: number|undefined  = undefined;
 		for (const [, data] of pairs<LossOfControlEventInfo>(this.lossOfControlHistory)) {

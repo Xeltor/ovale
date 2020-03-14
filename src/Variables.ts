@@ -7,8 +7,8 @@ import { OvaleDebugClass, Tracer } from "./Debug";
 export class Variables implements StateModule {
     isState = true;
     isInitialized = false;
-    futureVariable: LuaObj<number> = {};
-    futureLastEnable: LuaObj<number> = {};
+    futureVariable: LuaObj<number> = undefined;
+    futureLastEnable: LuaObj<number> = undefined;
     variable:LuaObj<number> = {};
     lastEnable: LuaObj<number> = {}
     private tracer: Tracer;
@@ -18,32 +18,34 @@ export class Variables implements StateModule {
     }
 
     InitializeState() {
+        this.futureVariable = {}
+        this.futureLastEnable = {}
         if (!this.ovaleFuture.IsInCombat(undefined)) {
             for (const [k] of pairs(this.variable)) {
                 this.tracer.Log("Resetting state variable '%s'.", k);
-                delete this.variable[k];
-                delete this.lastEnable[k];
+                this.variable[k] = undefined;
+                this.lastEnable[k] = undefined;
             }
         }
     }
     ResetState() {
         for (const [k] of pairs(this.futureVariable)) {
-            delete this.futureVariable[k];
-            delete this.futureLastEnable[k];
+            this.futureVariable[k] = undefined;
+            this.futureLastEnable[k] = undefined;
         }
     }
     CleanState() {
         for (const [k] of pairs(this.futureVariable)) {
-            delete this.futureVariable[k];
+            this.futureVariable[k] = undefined;
         }
         for (const [k] of pairs(this.futureLastEnable)) {
-            delete this.futureLastEnable[k];
+            this.futureLastEnable[k] = undefined;
         }
         for (const [k] of pairs(this.variable)) {
-            delete this.variable[k];
+            this.variable[k] = undefined;
         }
         for (const [k] of pairs(this.lastEnable)) {
-            delete this.lastEnable[k];
+            this.lastEnable[k] = undefined;
         }      
     }
 

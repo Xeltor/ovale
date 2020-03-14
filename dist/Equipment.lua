@@ -1,4 +1,4 @@
-local __exports = LibStub:NewLibrary("ovale/Equipment", 80300)
+local __exports = LibStub:NewLibrary("ovale/Equipment", 80201)
 if not __exports then return end
 local __class = LibStub:GetLibrary("tslib").newClass
 local aceEvent = LibStub:GetLibrary("AceEvent-3.0", true)
@@ -54,6 +54,8 @@ __exports.OvaleEquipmentClass = __class(nil, {
         self.ready = false
         self.equippedItemById = {}
         self.equippedItemBySlot = {}
+        self.mainHandItemType = nil
+        self.offHandItemType = nil
         self.mainHandDPS = 0
         self.offHandDPS = 0
         self.armorSetCount = {}
@@ -139,9 +141,6 @@ __exports.OvaleEquipmentClass = __class(nil, {
         return self.equippedItemById[itemId] and true or false
     end,
     HasMainHandWeapon = function(self, handedness)
-        if  not self.mainHandItemType then
-            return false
-        end
         if handedness then
             if handedness == 1 then
                 return OVALE_ONE_HANDED_WEAPON[self.mainHandItemType]
@@ -154,9 +153,6 @@ __exports.OvaleEquipmentClass = __class(nil, {
         return false
     end,
     HasOffHandWeapon = function(self, handedness)
-        if  not self.offHandItemType then
-            return false
-        end
         if handedness then
             if handedness == 1 then
                 return OVALE_ONE_HANDED_WEAPON[self.offHandItemType]
@@ -172,7 +168,7 @@ __exports.OvaleEquipmentClass = __class(nil, {
         return self.offHandItemType == "INVTYPE_SHIELD"
     end,
     HasRangedWeapon = function(self)
-        return self.mainHandItemType and OVALE_RANGED_WEAPON[self.mainHandItemType]
+        return OVALE_RANGED_WEAPON[self.mainHandItemType]
     end,
     HasTrinket = function(self, itemId)
         return self:HasEquippedItem(itemId)
@@ -186,12 +182,12 @@ __exports.OvaleEquipmentClass = __class(nil, {
         end
         if slotId then
             if slotId == OVALE_SLOTID_BY_SLOTNAME["MainHandSlot"] then
-                return self.mainHandItemType and OVALE_ONE_HANDED_WEAPON[self.mainHandItemType]
+                return OVALE_ONE_HANDED_WEAPON[self.mainHandItemType]
             elseif slotId == OVALE_SLOTID_BY_SLOTNAME["SecondaryHandSlot"] then
-                return self.offHandItemType and OVALE_ONE_HANDED_WEAPON[self.offHandItemType]
+                return OVALE_ONE_HANDED_WEAPON[self.offHandItemType]
             end
         else
-            return self.mainHandItemType and OVALE_ONE_HANDED_WEAPON[self.mainHandItemType] or self.offHandItemType and OVALE_ONE_HANDED_WEAPON[self.offHandItemType]
+            return OVALE_ONE_HANDED_WEAPON[self.mainHandItemType] or OVALE_ONE_HANDED_WEAPON[self.offHandItemType]
         end
         return false
     end,
@@ -235,7 +231,7 @@ __exports.OvaleEquipmentClass = __class(nil, {
         if itemLink then
             local stats = GetItemStats(itemLink)
             if stats then
-                dps = stats["ITEM_MOD_DAMAGE_PER_SECOND_SHORT"] or 0
+                dps = stats["ITEM_MOD_DAMAGE_PER_SECOND_SHORT"]
             end
         end
         return itemEquipLoc, dps

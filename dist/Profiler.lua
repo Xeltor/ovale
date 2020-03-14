@@ -1,4 +1,4 @@
-local __exports = LibStub:NewLibrary("ovale/Profiler", 80300)
+local __exports = LibStub:NewLibrary("ovale/Profiler", 80201)
 if not __exports then return end
 local __class = LibStub:GetLibrary("tslib").newClass
 local AceConfig = LibStub:GetLibrary("AceConfig-3.0", true)
@@ -17,10 +17,13 @@ local wipe = wipe
 local insert = table.insert
 local sort = table.sort
 local concat = table.concat
+local self_timestamp = debugprofilestop()
+local self_timeSpent = {}
+local self_timesInvoked = {}
+local self_stack = {}
+local self_stackSize = 0
 __exports.Profiler = __class(nil, {
     constructor = function(self, name, profiler)
-        self.profiler = profiler
-        self.timestamp = debugprofilestop()
         self.enabled = false
         local args = profiler.options.args.profiling.args.modules.args
         args[name] = {
@@ -35,36 +38,36 @@ __exports.Profiler = __class(nil, {
             return 
         end
         local newTimestamp = debugprofilestop()
-        if self.profiler.stackSize > 0 then
-            local delta = newTimestamp - self.timestamp
-            local previous = self.profiler.stack[self.profiler.stackSize]
-            local timeSpent = self.profiler.timeSpent[previous] or 0
+        if self_stackSize > 0 then
+            local delta = newTimestamp - self_timestamp
+            local previous = self_stack[self_stackSize]
+            local timeSpent = self_timeSpent[previous] or 0
             timeSpent = timeSpent + delta
-            self.profiler.timeSpent[previous] = timeSpent
+            self_timeSpent[previous] = timeSpent
         end
-        self.timestamp = newTimestamp
-        self.profiler.stackSize = self.profiler.stackSize + 1
-        self.profiler.stack[self.profiler.stackSize] = tag
+        self_timestamp = newTimestamp
+        self_stackSize = self_stackSize + 1
+        self_stack[self_stackSize] = tag
         do
-            local timesInvoked = self.profiler.timesInvoked[tag] or 0
+            local timesInvoked = self_timesInvoked[tag] or 0
             timesInvoked = timesInvoked + 1
-            self.profiler.timesInvoked[tag] = timesInvoked
+            self_timesInvoked[tag] = timesInvoked
         end
     end,
     StopProfiling = function(self, tag)
         if  not self.enabled then
             return 
         end
-        if self.profiler.stackSize > 0 then
-            local currentTag = self.profiler.stack[self.profiler.stackSize]
+        if self_stackSize > 0 then
+            local currentTag = self_stack[self_stackSize]
             if currentTag == tag then
                 local newTimestamp = debugprofilestop()
-                local delta = newTimestamp - self.timestamp
-                local timeSpent = self.profiler.timeSpent[currentTag] or 0
+                local delta = newTimestamp - self_timestamp
+                local timeSpent = self_timeSpent[currentTag] or 0
                 timeSpent = timeSpent + delta
-                self.profiler.timeSpent[currentTag] = timeSpent
-                self.timestamp = newTimestamp
-                self.profiler.stackSize = self.profiler.stackSize - 1
+                self_timeSpent[currentTag] = timeSpent
+                self_timestamp = newTimestamp
+                self_stackSize = self_stackSize - 1
             end
         end
     end,
@@ -73,10 +76,7 @@ __exports.OvaleProfilerClass = __class(nil, {
     constructor = function(self, ovaleOptions, ovale)
         self.ovaleOptions = ovaleOptions
         self.ovale = ovale
-        self.timeSpent = {}
-        self.timesInvoked = {}
-        self.stack = {}
-        self.stackSize = 0
+        self.self_profilingOutput = nil
         self.profiles = {}
         self.actions = {
             profiling = {
@@ -109,6 +109,7 @@ __exports.OvaleProfilerClass = __class(nil, {
                                 return (value ~= nil)
                             end,
                             set = function(info, value)
+                                value = value or nil
                                 local name = info[#info]
                                 self.ovaleOptions.db.global.profiler[name] = value
                                 if value then
@@ -133,11 +134,11 @@ __exports.OvaleProfilerClass = __class(nil, {
                             type = "execute",
                             order = 30,
                             func = function()
-                                self.profilingOutput:Clear()
+                                self.self_profilingOutput:Clear()
                                 local s = self:GetProfilingInfo()
                                 if s then
-                                    self.profilingOutput:AddLine(s)
-                                    self.profilingOutput:Display()
+                                    self.self_profilingOutput:AddLine(s)
+                                    self.self_profilingOutput:Display()
                                 end
                             end
                         }
@@ -149,9 +150,12 @@ __exports.OvaleProfilerClass = __class(nil, {
             local appName = self.module:GetName()
             AceConfig:RegisterOptionsTable(appName, self.options)
             AceConfigDialog:AddToBlizOptions(appName, L["Profiling"], self.ovale:GetName())
+            if  not self.self_profilingOutput then
+                self.self_profilingOutput = LibTextDump:New(self.ovale:GetName() .. " - " .. L["Profiling"], 750, 500)
+            end
         end
         self.OnDisable = function()
-            self.profilingOutput:Clear()
+            self.self_profilingOutput:Clear()
         end
         self.array = {}
         for k, v in pairs(self.actions) do
@@ -161,25 +165,24 @@ __exports.OvaleProfilerClass = __class(nil, {
         ovaleOptions.defaultDB.global.profiler = {}
         ovaleOptions:RegisterOptions(__exports.OvaleProfilerClass)
         self.module = ovale:createModule("OvaleProfiler", self.OnInitialize, self.OnDisable)
-        self.profilingOutput = LibTextDump:New(self.ovale:GetName() .. " - " .. L["Profiling"], 750, 500)
     end,
     create = function(self, name)
         return __exports.Profiler(name, self)
     end,
     ResetProfiling = function(self)
-        for tag in pairs(self.timeSpent) do
-            self.timeSpent[tag] = nil
+        for tag in pairs(self_timeSpent) do
+            self_timeSpent[tag] = nil
         end
-        for tag in pairs(self.timesInvoked) do
-            self.timesInvoked[tag] = nil
+        for tag in pairs(self_timesInvoked) do
+            self_timesInvoked[tag] = nil
         end
     end,
     GetProfilingInfo = function(self)
-        if next(self.timeSpent) then
+        if next(self_timeSpent) then
             local width = 1
             do
                 local tenPower = 10
-                for _, timesInvoked in pairs(self.timesInvoked) do
+                for _, timesInvoked in pairs(self_timesInvoked) do
                     while timesInvoked > tenPower do
                         width = width + 1
                         tenPower = tenPower * 10
@@ -188,8 +191,8 @@ __exports.OvaleProfilerClass = __class(nil, {
             end
             wipe(self.array)
             local formatString = format("    %%08.3fms: %%0%dd (%%05f) x %%s", width)
-            for tag, timeSpent in pairs(self.timeSpent) do
-                local timesInvoked = self.timesInvoked[tag]
+            for tag, timeSpent in pairs(self_timeSpent) do
+                local timesInvoked = self_timesInvoked[tag]
                 insert(self.array, format(formatString, timeSpent, timesInvoked, timeSpent / timesInvoked, tag))
             end
             if next(self.array) then
@@ -201,10 +204,10 @@ __exports.OvaleProfilerClass = __class(nil, {
         end
     end,
     DebuggingInfo = function(self)
-        Print("Profiler stack size = %d", self.stackSize)
-        local index = self.stackSize
-        while index > 0 and self.stackSize - index < 10 do
-            local tag = self.stack[index]
+        Print("Profiler stack size = %d", self_stackSize)
+        local index = self_stackSize
+        while index > 0 and self_stackSize - index < 10 do
+            local tag = self_stack[index]
             Print("    [%d] %s", index, tag)
             index = index - 1
         end

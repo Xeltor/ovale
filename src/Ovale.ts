@@ -42,8 +42,8 @@ export function Print(...__args: any[]) {
 
 
 export class OvaleClass extends OvaleBase {
-    playerClass: ClassId = "WARRIOR";
-    playerGUID: string = "";
+    playerClass: ClassId = undefined;
+    playerGUID: string = undefined;
     refreshNeeded:LuaObj<boolean> = {}
     
 
@@ -67,9 +67,9 @@ export class OvaleClass extends OvaleBase {
     //     this.frame.Hide();
     // }
     OnInitialize() {
-        this.playerGUID = UnitGUID("player") || "error";
+        this.playerGUID = UnitGUID("player");
         const [, classId] = UnitClass("player");
-        this.playerClass = classId || "WARRIOR";
+        this.playerClass = classId;
         wipe(self_refreshIntervals);
         self_refreshIndex = 1;
         this.ClearOneTimeMessages();

@@ -1,4 +1,4 @@
-local __exports = LibStub:NewLibrary("ovale/PaperDoll", 80300)
+local __exports = LibStub:NewLibrary("ovale/PaperDoll", 80201)
 if not __exports then return end
 local __class = LibStub:GetLibrary("tslib").newClass
 local __State = LibStub:GetLibrary("ovale/State")
@@ -312,15 +312,14 @@ __exports.OvalePaperDollClass = __class(States, {
             self.SPELL_POWER_CHANGED()
             self.UpdateDamage()
         end
-        self.CopySpellcastInfo = function(spellcast, dest)
+        self.CopySpellcastInfo = function(module, spellcast, dest)
             self:UpdateSnapshot(dest, spellcast, true)
         end
-        self.SaveSpellcastInfo = function(spellcast, atTime, state)
+        self.SaveSpellcastInfo = function(module, spellcast, atTime, state)
             local paperDollModule = state or self.current
             self:UpdateSnapshot(spellcast, paperDollModule, true)
         end
         States.constructor(self, __exports.PaperDollData)
-        self.class = ovale.playerClass
         self.module = ovale:createModule("OvalePaperDoll", self.OnInitialize, self.OnDisable, aceEvent)
         self.debug = ovaleDebug:create("OvalePaperDoll")
         self.profiler = ovaleProfiler:create("OvalePaperDoll")
@@ -348,7 +347,7 @@ __exports.OvalePaperDollClass = __class(States, {
     end,
     GetSpecialization = function(self, specialization)
         specialization = specialization or self.specialization or 1
-        return __exports.OVALE_SPECIALIZATION_NAME[self.class][specialization] or "arms"
+        return __exports.OVALE_SPECIALIZATION_NAME[self.class][specialization]
     end,
     IsSpecialization = function(self, name)
         if name and self.specialization then
@@ -396,10 +395,7 @@ __exports.OvalePaperDollClass = __class(States, {
         snapshot = snapshot or self.current
         local nameTable = (updateAllStats and STAT_NAME) or SNAPSHOT_STAT_NAME
         for _, k in ipairs(nameTable) do
-            local value = snapshot[k]
-            if value then
-                target[k] = value
-            end
+            target[k] = snapshot[k]
         end
     end,
     InitializeState = function(self)

@@ -1,4 +1,4 @@
-local __exports = LibStub:NewLibrary("ovale/Spells", 80300)
+local __exports = LibStub:NewLibrary("ovale/Spells", 80201)
 if not __exports then return end
 local __class = LibStub:GetLibrary("tslib").newClass
 local aceEvent = LibStub:GetLibrary("AceEvent-3.0", true)
@@ -56,7 +56,7 @@ __exports.OvaleSpellsClass = __class(nil, {
                     castTime = 0
                 end
             else
-                return nil
+                castTime = nil
             end
             return castTime
         end
@@ -69,35 +69,24 @@ __exports.OvaleSpellsClass = __class(nil, {
             return spellCount
         else
             local spellName = self.OvaleSpellBook:GetSpellName(spellId)
-            if spellName then
-                local spellCount = GetSpellCount(spellName)
-                self.tracer:Debug("GetSpellCount: spellName=%s for spellId=%s ==> spellCount=%s", spellName, spellId, spellCount)
-                return spellCount
-            end
-            return 0
+            local spellCount = GetSpellCount(spellName)
+            self.tracer:Debug("GetSpellCount: spellName=%s for spellId=%s ==> spellCount=%s", spellName, spellId, spellCount)
+            return spellCount
         end
     end,
     IsSpellInRange = function(self, spellId, unitId)
         local index, bookType = self.OvaleSpellBook:GetSpellBookIndex(spellId)
-        local returnValue
+        local returnValue = nil
         if index and bookType then
             returnValue = IsSpellInRange(index, bookType, unitId)
         elseif self.OvaleSpellBook:IsKnownSpell(spellId) then
             local name = self.OvaleSpellBook:GetSpellName(spellId)
-            if name then
-                returnValue = IsSpellInRange(name, unitId)
-            end
+            returnValue = IsSpellInRange(name, unitId)
         end
         if (returnValue == 1 and spellId == WARRIOR_INCERCEPT_SPELLID) then
             return (UnitIsFriend("player", unitId) or self:IsSpellInRange(WARRIOR_HEROICTHROW_SPELLID, unitId))
         end
-        if returnValue == 1 then
-            return true
-        end
-        if returnValue == 0 then
-            return false
-        end
-        return nil
+        return (returnValue == 1 and true) or (returnValue == 0 and false) or (returnValue == nil and nil)
     end,
     CleanState = function(self)
     end,
@@ -138,7 +127,7 @@ __exports.OvaleSpellsClass = __class(nil, {
             if isUsable then
                 isUsable, requirement = self.ovaleData:CheckSpellInfo(spellId, atTime, targetGUID)
                 if  not isUsable then
-                    noMana = PRIMARY_POWER[requirement] or false
+                    noMana = PRIMARY_POWER[requirement]
                     if noMana then
                         self.tracer:Log("Spell ID '%s' does not have enough %s.", spellId, requirement)
                     else
@@ -152,9 +141,6 @@ __exports.OvaleSpellsClass = __class(nil, {
                 return IsUsableSpell(index, bookType)
             elseif self.OvaleSpellBook:IsKnownSpell(spellId) then
                 local name = self.OvaleSpellBook:GetSpellName(spellId)
-                if  not name then
-                    return false, false
-                end
                 return IsUsableSpell(name)
             end
         end

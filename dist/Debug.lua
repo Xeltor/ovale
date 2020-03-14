@@ -1,4 +1,4 @@
-local __exports = LibStub:NewLibrary("ovale/Debug", 80300)
+local __exports = LibStub:NewLibrary("ovale/Debug", 80201)
 if not __exports then return end
 local __class = LibStub:GetLibrary("tslib").newClass
 local AceConfig = LibStub:GetLibrary("AceConfig-3.0", true)
@@ -13,6 +13,8 @@ local format = string.format
 local pairs = pairs
 local GetTime = GetTime
 local DEFAULT_CHAT_FRAME = DEFAULT_CHAT_FRAME
+local self_traced = false
+local self_traceLog = nil
 local OVALE_TRACELOG_MAXLINES = 4096
 __exports.Tracer = __class(nil, {
     constructor = function(self, options, debug, name)
@@ -41,11 +43,11 @@ __exports.Tracer = __class(nil, {
     end,
     Log = function(self, ...)
         if self.debug.trace then
-            local N = self.debug.traceLog:Lines()
+            local N = self_traceLog:Lines()
             if N < OVALE_TRACELOG_MAXLINES - 1 then
-                self.debug.traceLog:AddLine(MakeString(...))
+                self_traceLog:AddLine(MakeString(...))
             elseif N == OVALE_TRACELOG_MAXLINES - 1 then
-                self.debug.traceLog:AddLine("WARNING: Maximum length of trace log has been reached.")
+                self_traceLog:AddLine("WARNING: Maximum length of trace log has been reached.")
             end
         end
     end,
@@ -71,7 +73,6 @@ __exports.OvaleDebugClass = __class(nil, {
     constructor = function(self, ovale, options)
         self.ovale = ovale
         self.options = options
-        self.self_traced = false
         self.defaultOptions = {
             name = "Ovale " .. L["Debug"],
             type = "group",
@@ -86,11 +87,8 @@ __exports.OvaleDebugClass = __class(nil, {
                         return (value ~= nil)
                     end,
                     set = function(info, value)
-                        if  not value then
-                            self.options.db.global.debug[info[#info]] = nil
-                        else
-                            self.options.db.global.debug[info[#info]] = value
-                        end
+                        value = value or nil
+                        self.options.db.global.debug[info[#info]] = value
                     end
                 },
                 trace = {
@@ -120,15 +118,7 @@ __exports.OvaleDebugClass = __class(nil, {
             }
         }
         self.trace = false
-        self.OnInitialize = function()
-            local appName = self.module:GetName()
-            AceConfig:RegisterOptionsTable(appName, self.defaultOptions)
-            AceConfigDialog:AddToBlizOptions(appName, L["Debug"], self.ovale:GetName())
-        end
-        self.OnDisable = function()
-        end
-        self.module = ovale:createModule("OvaleDebug", self.OnInitialize, self.OnDisable, aceTimer)
-        self.traceLog = LibTextDump:New(self.ovale:GetName() .. " - " .. L["Trace Log"], 750, 500)
+        self.module = (ovale:NewModule("OvaleDebug", aceTimer))()
         local actions = {
             debug = {
                 name = L["Debug"],
@@ -150,37 +140,41 @@ __exports.OvaleDebugClass = __class(nil, {
     create = function(self, name)
         return __exports.Tracer(self.options, self, name)
     end,
+    OnInitialize = function(self)
+        local appName = self.module:GetName()
+        AceConfig:RegisterOptionsTable(appName, self.defaultOptions)
+        AceConfigDialog:AddToBlizOptions(appName, L["Debug"], self.ovale:GetName())
+        self_traceLog = LibTextDump:New(self.ovale:GetName() .. " - " .. L["Trace Log"], 750, 500)
+    end,
     DoTrace = function(self, displayLog)
-        self.traceLog:Clear()
+        self_traceLog:Clear()
         self.trace = true
         DEFAULT_CHAT_FRAME:AddMessage(format("=== Trace @%f", GetTime()))
         if displayLog then
-            self.module:ScheduleTimer(function()
-                self:DisplayTraceLog()
-            end, 0.5)
+            self.module:ScheduleTimer("DisplayTraceLog", 0.5)
         end
     end,
     ResetTrace = function(self)
         self.bug = nil
         self.trace = false
-        self.self_traced = false
+        self_traced = false
     end,
     UpdateTrace = function(self)
         if self.trace then
-            self.self_traced = true
+            self_traced = true
         end
         if self.bug then
             self.trace = true
         end
-        if self.trace and self.self_traced then
-            self.self_traced = false
+        if self.trace and self_traced then
+            self_traced = false
             self.trace = false
         end
     end,
     DisplayTraceLog = function(self)
-        if self.traceLog:Lines() == 0 then
-            self.traceLog:AddLine("Trace log is empty.")
+        if self_traceLog:Lines() == 0 then
+            self_traceLog:AddLine("Trace log is empty.")
         end
-        self.traceLog:Display()
+        self_traceLog:Display()
     end,
 })

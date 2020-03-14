@@ -48,7 +48,7 @@ export class OvaleStaggerClass implements StateModule {
     ResetState(): void {   
         if(!this.ovaleFuture.IsInCombat(undefined)){
             for (const [k] of pairs(this.staggerTicks)) {
-                delete this.staggerTicks[k];
+                this.staggerTicks[k] = undefined;
             }
         }
     }

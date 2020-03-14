@@ -3,13 +3,14 @@ import { insert, remove } from "@wowts/table";
 import { format } from "@wowts/string";
 
 export class OvalePool<T> {
-    pool:LuaArray<T> = {};
+    pool:LuaArray<T> = undefined;
     size = 0;
     unused = 0;
     name: string;
     
     constructor(name: string) {
         this.name = name || "OvalePool";
+        this.Drain();
     }
 
     Get() {

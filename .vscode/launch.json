@@ -11,7 +11,7 @@
             "program": "${workspaceFolder}/dist/utils/importsimc.js",
             "protocol": "inspector",
             "args": [
-                "../../simc/", "T24_Warrior_Fury.simc"
+                "../../simc/"
             ],
             "outFiles": [
                 "${workspaceFolder}/dist/**/*.js"
@@ -31,10 +31,10 @@
             "type": "node",
             "request": "launch",
             "name": "Debug tests",
-            "program": "${workspaceFolder}/../node_modules/ava/profile.js",
-            "args": ["${workspaceFolder}/dist/tests/${fileBasenameNoExtension}.js"],
+            "program": "${workspaceRoot}/node_modules/ava/profile.js",
+            "args": ["${workspaceRoot}/dist/tests/integration.spec.js"],
             "outFiles": [
-                "${workspaceFolder}/dist/**/*.js"
+                "${workspaceRoot}/dist/**/*.js"
             ],
             "protocol": "inspector"
         },

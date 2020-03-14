@@ -1,4 +1,4 @@
-local __exports = LibStub:NewLibrary("ovale/Stance", 80300)
+local __exports = LibStub:NewLibrary("ovale/Stance", 80201)
 if not __exports then return end
 local __class = LibStub:GetLibrary("tslib").newClass
 local __Localization = LibStub:GetLibrary("ovale/Localization")
@@ -28,31 +28,16 @@ local druidMoonkinForm = GetSpellInfo(24858)
 local druid_flight_form = GetSpellInfo(33943)
 local druid_swift_flight_form = GetSpellInfo(40120)
 local rogue_stealth = GetSpellInfo(1784)
-local SPELL_NAME_TO_STANCE = {}
-if druidCatForm then
-    SPELL_NAME_TO_STANCE[druidCatForm] = "druid_cat_form"
-end
-if druidTravelForm then
-    SPELL_NAME_TO_STANCE[druidTravelForm] = "druid_travel_form"
-end
-if druidAquaticForm then
-    SPELL_NAME_TO_STANCE[druidAquaticForm] = "druid_aquatic_form"
-end
-if druidBearForm then
-    SPELL_NAME_TO_STANCE[druidBearForm] = "druid_bear_form"
-end
-if druidMoonkinForm then
-    SPELL_NAME_TO_STANCE[druidMoonkinForm] = "druid_moonkin_form"
-end
-if druid_flight_form then
-    SPELL_NAME_TO_STANCE[druid_flight_form] = "druid_flight_form"
-end
-if druid_swift_flight_form then
-    SPELL_NAME_TO_STANCE[druid_swift_flight_form] = "druid_swift_flight_form"
-end
-if rogue_stealth then
-    SPELL_NAME_TO_STANCE[rogue_stealth] = "rogue_stealth"
-end
+local SPELL_NAME_TO_STANCE = {
+    [druidCatForm] = "druid_cat_form",
+    [druidTravelForm] = "druid_travel_form",
+    [druidAquaticForm] = "druid_aquatic_form",
+    [druidBearForm] = "druid_bear_form",
+    [druidMoonkinForm] = "druid_moonkin_form",
+    [druid_flight_form] = "druid_flight_form",
+    [druid_swift_flight_form] = "druid_swift_flight_form",
+    [rogue_stealth] = "rogue_stealth"
+}
 __exports.STANCE_NAME = {
     druid_aquatic_form = true,
     druid_bear_form = true,
@@ -66,7 +51,7 @@ __exports.STANCE_NAME = {
 local array = {}
 local StanceData = __class(nil, {
     constructor = function(self)
-        self.stance = 0
+        self.stance = nil
     end
 })
 __exports.OvaleStanceClass = __class(States, {
@@ -164,12 +149,10 @@ __exports.OvaleStanceClass = __class(States, {
         for i = 1, GetNumShapeshiftForms(), 1 do
             _, _, _, spellId = GetShapeshiftFormInfo(i)
             name = GetSpellInfo(spellId)
-            if name then
-                stanceName = SPELL_NAME_TO_STANCE[name]
-                if stanceName then
-                    self.stanceList[i] = stanceName
-                    self.stanceId[stanceName] = i
-                end
+            stanceName = SPELL_NAME_TO_STANCE[name]
+            if stanceName then
+                self.stanceList[i] = stanceName
+                self.stanceId[stanceName] = i
             end
         end
         self.profiler:StopProfiling("OvaleStance_CreateStanceList")
@@ -217,13 +200,13 @@ __exports.OvaleStanceClass = __class(States, {
         self.profiler:StopProfiling("OvaleStance_ShapeshiftEventHandler")
     end,
     InitializeState = function(self)
-        self.next.stance = 0
+        self.next.stance = nil
     end,
     CleanState = function(self)
     end,
     ResetState = function(self)
         self.profiler:StartProfiling("OvaleStance_ResetState")
-        self.next.stance = self.current.stance
+        self.next.stance = self.current.stance or 0
         self.profiler:StopProfiling("OvaleStance_ResetState")
     end,
     ApplySpellAfterCast = function(self, spellId, targetGUID, startCast, endCast, isChanneled, spellcast)

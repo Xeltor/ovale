@@ -1,4 +1,4 @@
-local __exports = LibStub:NewLibrary("ovale/simulationcraft/unparser", 80300)
+local __exports = LibStub:NewLibrary("ovale/simulationcraft/unparser", 80201)
 if not __exports then return end
 local __class = LibStub:GetLibrary("tslib").newClass
 local __definitions = LibStub:GetLibrary("ovale/simulationcraft/definitions")
@@ -89,8 +89,6 @@ __exports.Unparser = __class(nil, {
                     rhsExpression = self:Unparse(rhsNode)
                 end
                 expression = lhsExpression .. node.operator .. rhsExpression
-            else
-                return "Unknown node expression type"
             end
             return expression
         end

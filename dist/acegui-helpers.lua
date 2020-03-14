@@ -1,4 +1,4 @@
-local __exports = LibStub:NewLibrary("ovale/acegui-helpers", 80300)
+local __exports = LibStub:NewLibrary("ovale/acegui-helpers", 80201)
 if not __exports then return end
 __exports.AceGUIRegisterAsContainer = function(widget)
     widget.children = {}

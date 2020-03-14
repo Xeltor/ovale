@@ -10,23 +10,25 @@ export interface LexerFilter {
     comments?: Tokenizer;
 }
 
+
 export type TokenizerDefinition = { [1]: string, [2]: Tokenizer };
+
 
 export class OvaleLexer {
     typeQueue = new OvaleQueue<string>("typeQueue");
     tokenQueue = new OvaleQueue<string>("tokenQueue");
     endOfStream: boolean | undefined = undefined;
-    iterator: LuaIterable<[string | undefined, string | undefined]>;
+    iterator: LuaIterable<[string, string]>;
     
     constructor(public name: string, stream: string, matches: LuaArray<TokenizerDefinition>, filter?: LexerFilter) {
         this.iterator = this.scan(stream, matches, filter);
     }
 
-    finished: boolean = false;
+    finished: boolean;
     private scan(s: string, matches: LuaArray<TokenizerDefinition>, filter?:LexerFilter) {
         let me = this;
 
-        const lex = function*():IterableIterator<[string | undefined, string | undefined]> {
+        const lex = function*():IterableIterator<[string, string]> {
             if (s == '') {
                 return;
             }
@@ -55,12 +57,12 @@ export class OvaleLexer {
 
     Release() {
         for (const [key] of kpairs(this)) {
-            delete this[key];
+            this[key] = undefined;
         }
     }
-    Consume(index?: number):[string | undefined, string | undefined] {
+    Consume(index?: number):[string, string] {
         index = index || 1;
-        let tokenType, token;
+        let tokenType: string, token: string;
         while (index > 0 && this.typeQueue.Size() > 0) {
             tokenType = this.typeQueue.RemoveFront();
             token = this.tokenQueue.RemoveFront();
@@ -78,15 +80,15 @@ export class OvaleLexer {
         }
         return [tokenType, token];
     }
-    Peek(index?: number):[string | undefined, string | undefined] {
+    Peek(index?: number):[string, string] {
         index = index || 1;
-        let tokenType, token;
+        let tokenType:string, token: string;
         while (index > this.typeQueue.Size()) {
             if (this.endOfStream) {
                 break;
             } else {
                 [tokenType, token] = this.iterator();
-                if (!tokenType || !token) {
+                if (!tokenType) {
                     this.endOfStream = true;
                     break;
                 }

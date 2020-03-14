@@ -1,4 +1,4 @@
-local __exports = LibStub:NewLibrary("ovale/simulationcraft/splitter", 80300)
+local __exports = LibStub:NewLibrary("ovale/simulationcraft/splitter", 80201)
 if not __exports then return end
 local __class = LibStub:GetLibrary("tslib").newClass
 local ipairs = ipairs
@@ -9,6 +9,7 @@ local __definitions = LibStub:GetLibrary("ovale/simulationcraft/definitions")
 local TagPriority = __definitions.TagPriority
 local __texttools = LibStub:GetLibrary("ovale/simulationcraft/text-tools")
 local OvaleTaggedFunctionName = __texttools.OvaleTaggedFunctionName
+local lower = string.lower
 local find = string.find
 local sub = string.sub
 local insert = table.insert
@@ -20,7 +21,6 @@ __exports.Splitter = __class(nil, {
             local visitor = self.SPLIT_BY_TAG_VISITOR[node.type]
             if  not visitor then
                 self.tracer:Error("Unable to split-by-tag node of type '%s'.", node.type)
-                return 
             else
                 return visitor(tag, node, nodeList, annotation)
             end
@@ -59,11 +59,11 @@ __exports.Splitter = __class(nil, {
                     name = firstParamNode.value
                     id = name
                 end
-                if id then
+                if actionTag == nil then
                     actionTag, invokesGCD = self.ovaleData:GetSpellTagInfo(id)
-                    if actionTag == nil then
-                        actionTag, invokesGCD = self.ovaleData:GetItemTagInfo(id)
-                    end
+                end
+                if actionTag == nil then
+                    actionTag, invokesGCD = self.ovaleData:GetItemTagInfo(id)
                 end
                 if actionTag == nil then
                     actionTag = "main"
@@ -86,24 +86,17 @@ __exports.Splitter = __class(nil, {
         end
         self.SplitByTagAddFunction = function(tag, node, nodeList, annotation)
             local bodyName, conditionName = OvaleTaggedFunctionName(node.name, tag)
-            if  not bodyName or  not conditionName then
-                return 
-            end
             local bodyNode, conditionNode = self.SplitByTag(tag, node.child[1], nodeList, annotation)
             if  not bodyNode or bodyNode.type ~= "group" then
                 local newGroupNode = self.ovaleAst:NewNode(nodeList, true)
                 newGroupNode.type = "group"
-                if bodyNode then
-                    newGroupNode.child[1] = bodyNode
-                end
+                newGroupNode.child[1] = bodyNode
                 bodyNode = newGroupNode
             end
             if  not conditionNode or conditionNode.type ~= "group" then
                 local newGroupNode = self.ovaleAst:NewNode(nodeList, true)
                 newGroupNode.type = "group"
-                if conditionNode then
-                    newGroupNode.child[1] = conditionNode
-                end
+                newGroupNode.child[1] = conditionNode
                 conditionNode = newGroupNode
             end
             local bodyFunctionNode = self.ovaleAst:NewNode(nodeList, true)
@@ -121,34 +114,34 @@ __exports.Splitter = __class(nil, {
             local functionName = node.name
             if annotation.taggedFunctionName[functionName] then
                 local bodyName, conditionName = OvaleTaggedFunctionName(functionName, tag)
-                if bodyName and conditionName then
-                    bodyNode = self.ovaleAst:NewNode(nodeList)
-                    bodyNode.name = bodyName
-                    bodyNode.type = "custom_function"
-                    bodyNode.func = bodyName
-                    bodyNode.asString = bodyName .. "()"
-                    conditionNode = self.ovaleAst:NewNode(nodeList)
-                    conditionNode.name = conditionName
-                    conditionNode.type = "custom_function"
-                    conditionNode.func = conditionName
-                    conditionNode.asString = conditionName .. "()"
-                end
+                bodyNode = self.ovaleAst:NewNode(nodeList)
+                bodyNode.name = bodyName
+                bodyNode.lowername = lower(bodyName)
+                bodyNode.type = "custom_function"
+                bodyNode.func = bodyName
+                bodyNode.asString = bodyName .. "()"
+                conditionNode = self.ovaleAst:NewNode(nodeList)
+                conditionNode.name = conditionName
+                conditionNode.lowername = lower(conditionName)
+                conditionNode.type = "custom_function"
+                conditionNode.func = conditionName
+                conditionNode.asString = conditionName .. "()"
             else
                 local functionTag = annotation.functionTag[functionName]
                 if  not functionTag then
-                    if find(functionName, "bloodlust") then
+                    if find(functionName, "Bloodlust") then
                         functionTag = "cd"
-                    elseif find(functionName, "getinmeleerange") then
+                    elseif find(functionName, "GetInMeleeRange") then
                         functionTag = "shortcd"
-                    elseif find(functionName, "interruptactions") then
+                    elseif find(functionName, "InterruptActions") then
                         functionTag = "cd"
-                    elseif find(functionName, "summonpet") then
+                    elseif find(functionName, "SummonPet") then
                         functionTag = "shortcd"
-                    elseif find(functionName, "useitemactions") then
+                    elseif find(functionName, "UseItemActions") then
                         functionTag = "cd"
-                    elseif find(functionName, "usepotion") then
+                    elseif find(functionName, "UsePotion") then
                         functionTag = "cd"
-                    elseif find(functionName, "useheartessence") then
+                    elseif find(functionName, "UseHeartEssence") then
                         functionTag = "cd"
                     end
                 end
@@ -186,12 +179,8 @@ __exports.Splitter = __class(nil, {
                         else
                             local unlessNode = self.ovaleAst:NewNode(nodeList, true)
                             unlessNode.type = "unless"
-                            local condition = self:ConcatenatedConditionNode(conditionList, nodeList, annotation)
-                            local body = self:ConcatenatedBodyNode(bodyList, nodeList, annotation)
-                            if condition and body then
-                                unlessNode.child[1] = condition
-                                unlessNode.child[2] = body
-                            end
+                            unlessNode.child[1] = self:ConcatenatedConditionNode(conditionList, nodeList, annotation)
+                            unlessNode.child[2] = self:ConcatenatedBodyNode(bodyList, nodeList, annotation)
                             wipe(bodyList)
                             wipe(conditionList)
                             insert(bodyList, 1, unlessNode)

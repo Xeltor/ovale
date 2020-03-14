@@ -318,8 +318,11 @@ AddFunction FeralFinishersMainActions
        #ferocious_bite,max_energy=1,target_if=max:druid.rip.ticks_gained_on_refresh
        if Energy() >= EnergyCost(ferocious_bite max=1) Spell(ferocious_bite)
 <<<<<<< HEAD
+<<<<<<< HEAD
 	  }
 =======
+=======
+>>>>>>> parent of bc258945... cahnges
       }
 >>>>>>> parent of bc258945... cahnges
      }

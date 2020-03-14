@@ -297,7 +297,7 @@ AddFunction WindwalkerEssencesCdActions
  {
   #blood_of_the_enemy
   Spell(blood_of_the_enemy)
- 
+
 
   unless Spell(purifying_blast) or Spell(the_unbound_force) or Spell(ripple_in_space_essence) or Spell(worldvein_resonance_essence)
   {

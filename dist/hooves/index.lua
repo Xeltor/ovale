@@ -30,7 +30,7 @@ local registerDruidBalanceHooves = __ovale_druid.registerDruidBalanceHooves
 local registerMonkWindwalkerHooves = __ovale_monk.registerMonkWindwalkerHooves
 local registerDruidFeralToast83 = __ovale_druid.registerDruidFeralToast83
 local registerMonkMistweaverToast = __ovale_monk.registerMonkMistweaverToast
-
+local registerDruidFeralToast83reaping = __ovale_druid.registerDruidFeralToast83reaping
 __exports.registerScripts = function(ovaleScripts)
 	registerMonkBrewmasterHooves(ovaleScripts)
 	registerDruidFeralToast(ovaleScripts)
@@ -46,6 +46,7 @@ __exports.registerScripts = function(ovaleScripts)
 		registerMonkWindwalkerHooves(ovaleScripts)
 		registerDruidFeralToast83(ovaleScripts)
 		registerMonkMistweaverToast(ovaleScripts)
+		registerDruidFeralToast83reaping(ovaleScripts)
 	-- For each created register link it here to ovaleScripts.
 	-- Example:
 	-- registerDruidFeralHooves(ovaleScripts)

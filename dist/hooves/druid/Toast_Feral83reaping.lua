@@ -134,7 +134,7 @@ AddFunction feraldefaultmainactions
   if buffpresent(prowl_buff) or buffpresent(shadowmeld_buff) spell(rake)
   #variable,name=reaping_delay,value=target.time_to_die,if=variable.reaping_delay=0
   #cycling_variable,name=reaping_delay,op=min,value=target.time_to_die
-  spell(cycling_variable)
+  #spell(cycling_variable)
   #call_action_list,name=cooldowns
   feralcooldownsmainactions()
 
@@ -168,7 +168,7 @@ AddFunction feraldefaultshortcdactions
  #run_action_list,name=opener,if=variable.opener_done=0
  if opener_done() == 0 feralopenershortcdactions()
 
- unless opener_done() == 0 and feralopenershortcdpostconditions() or not buffpresent(cat_form_buff) and spell(cat_form) or { buffpresent(prowl_buff) or buffpresent(shadowmeld_buff) } and spell(rake) or spell(cycling_variable)
+ unless opener_done() == 0 and feralopenershortcdpostconditions() or not buffpresent(cat_form_buff) and spell(cat_form) or { buffpresent(prowl_buff) or buffpresent(shadowmeld_buff) } and spell(rake) #or spell(cycling_variable)
  {
   #call_action_list,name=cooldowns
   feralcooldownsshortcdactions()
@@ -189,7 +189,7 @@ AddFunction feraldefaultshortcdactions
 
 AddFunction feraldefaultshortcdpostconditions
 {
- opener_done() == 0 and feralopenershortcdpostconditions() or not buffpresent(cat_form_buff) and spell(cat_form) or { buffpresent(prowl_buff) or buffpresent(shadowmeld_buff) } and spell(rake) or spell(cycling_variable) or feralcooldownsshortcdpostconditions() or target.debuffpresent(rip_debuff) and target.debuffremaining(rip_debuff) < 3 and target.timetodie() > 10 and hastalent(sabertooth_talent) and spell(ferocious_bite) or combopoints() == 5 and buffpresent(predatory_swiftness_buff) and hastalent(bloodtalons_talent) and buffexpires(bloodtalons_buff) and talent(bloodtalons_talent) and { buffremaining(bloodtalons_buff) < casttime(regrowth) + gcdremaining() or incombat() } and spell(regrowth) or combopoints() > 4 and feralfinishersshortcdpostconditions() or feralgeneratorsshortcdpostconditions()
+ opener_done() == 0 and feralopenershortcdpostconditions() or not buffpresent(cat_form_buff) and spell(cat_form) or { buffpresent(prowl_buff) or buffpresent(shadowmeld_buff) } and spell(rake) or feralcooldownsshortcdpostconditions() or target.debuffpresent(rip_debuff) and target.debuffremaining(rip_debuff) < 3 and target.timetodie() > 10 and hastalent(sabertooth_talent) and spell(ferocious_bite) or combopoints() == 5 and buffpresent(predatory_swiftness_buff) and hastalent(bloodtalons_talent) and buffexpires(bloodtalons_buff) and talent(bloodtalons_talent) and { buffremaining(bloodtalons_buff) < casttime(regrowth) + gcdremaining() or incombat() } and spell(regrowth) or combopoints() > 4 and feralfinishersshortcdpostconditions() or feralgeneratorsshortcdpostconditions()
 }
 
 AddFunction feraldefaultcdactions
@@ -198,7 +198,7 @@ AddFunction feraldefaultcdactions
  #run_action_list,name=opener,if=variable.opener_done=0
  if opener_done() == 0 feralopenercdactions()
 
- unless opener_done() == 0 and feralopenercdpostconditions() or not buffpresent(cat_form_buff) and spell(cat_form) or { buffpresent(prowl_buff) or buffpresent(shadowmeld_buff) } and spell(rake) or spell(cycling_variable)
+ unless opener_done() == 0 and feralopenercdpostconditions() or not buffpresent(cat_form_buff) and spell(cat_form) or { buffpresent(prowl_buff) or buffpresent(shadowmeld_buff) } and spell(rake) #or spell(cycling_variable)
  {
   #call_action_list,name=cooldowns
   feralcooldownscdactions()
@@ -219,7 +219,7 @@ AddFunction feraldefaultcdactions
 
 AddFunction feraldefaultcdpostconditions
 {
- opener_done() == 0 and feralopenercdpostconditions() or not buffpresent(cat_form_buff) and spell(cat_form) or { buffpresent(prowl_buff) or buffpresent(shadowmeld_buff) } and spell(rake) or spell(cycling_variable) or feralcooldownscdpostconditions() or target.debuffpresent(rip_debuff) and target.debuffremaining(rip_debuff) < 3 and target.timetodie() > 10 and hastalent(sabertooth_talent) and spell(ferocious_bite) or combopoints() == 5 and buffpresent(predatory_swiftness_buff) and hastalent(bloodtalons_talent) and buffexpires(bloodtalons_buff) and talent(bloodtalons_talent) and { buffremaining(bloodtalons_buff) < casttime(regrowth) + gcdremaining() or incombat() } and spell(regrowth) or combopoints() > 4 and feralfinisherscdpostconditions() or feralgeneratorscdpostconditions()
+ opener_done() == 0 and feralopenercdpostconditions() or not buffpresent(cat_form_buff) and spell(cat_form) or { buffpresent(prowl_buff) or buffpresent(shadowmeld_buff) } and spell(rake) or feralcooldownscdpostconditions() or target.debuffpresent(rip_debuff) and target.debuffremaining(rip_debuff) < 3 and target.timetodie() > 10 and hastalent(sabertooth_talent) and spell(ferocious_bite) or combopoints() == 5 and buffpresent(predatory_swiftness_buff) and hastalent(bloodtalons_talent) and buffexpires(bloodtalons_buff) and talent(bloodtalons_talent) and { buffremaining(bloodtalons_buff) < casttime(regrowth) + gcdremaining() or incombat() } and spell(regrowth) or combopoints() > 4 and feralfinisherscdpostconditions() or feralgeneratorscdpostconditions()
 }
 
 ### actions.cooldowns

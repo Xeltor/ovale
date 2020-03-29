@@ -16,6 +16,8 @@ local __ovale_warrior = LibStub:GetLibrary("ovale/scripts/ovale_warrior")
 -- For every script create a new entry here.
 -- Example:
 -- local registerDruidFeralHooves = __ovale_druid.registerDruidFeralHooves
+local registerShamanElementalHooves = __ovale_shaman.registerShamanElementalHooves
+local registerShamanRestorationHooves = __ovale_shaman.registerShamanRestorationHooves
 local registerDruidGuardianHooves = __ovale_druid.registerDruidGuardianHooves
 --local registerDruidRestorationHooves = __ovale_druid.registerDruidRestorationHooves
 local registerDruidFeralToast = __ovale_druid.registerDruidFeralToast
@@ -32,9 +34,10 @@ local registerDruidFeralToast83 = __ovale_druid.registerDruidFeralToast83
 local registerMonkMistweaverToast = __ovale_monk.registerMonkMistweaverToast
 --local registerDruidFeralToast83reaping = __ovale_druid.registerDruidFeralToast83reaping
 local registerDeathKnightBloodHooves = __ovale_deathknight.registerDeathKnightBloodHooves
-local registerShamanElementalHooves = __ovale_shaman.registerShamanElementalHooves
-local registerShamanRestorationHooves = __ovale_shaman.registerShamanRestorationHooves
+
 __exports.registerScripts = function(ovaleScripts)
+	registerShamanElementalHooves(ovaleScripts)
+	registerShamanRestorationHooves(ovaleScripts)
 	registerMonkBrewmasterHooves(ovaleScripts)
 	registerDruidFeralToast(ovaleScripts)
 	registerDruidGuardianHooves(ovaleScripts)
@@ -51,8 +54,7 @@ __exports.registerScripts = function(ovaleScripts)
 		registerMonkMistweaverToast(ovaleScripts)
 	--	registerDruidFeralToast83reaping(ovaleScripts)
 		registerDeathKnightBloodHooves(ovaleScripts)
-		registerShamanElementalHooves(ovaleScripts)
-		registerShamanRestorationHooves(ovaleScripts)
+
 	-- For each created register link it here to ovaleScripts.
 	-- Example:
 	-- registerDruidFeralHooves(ovaleScripts)

@@ -5,15 +5,15 @@ do
 	local name = "hooves_restoration"
 	local desc = "[Hooves][8.3] Shaman: Restoration"
 	local code = [[
-Include(ovale_common)
-Include(ovale_trinkets_mop)
-Include(ovale_trinkets_wod)
-Include(ovale_shaman_spells)
+	Include(ovale_common)
+	Include(ovale_trinkets_mop)
+	Include(ovale_trinkets_wod)
+	Include(ovale_shaman_spells)
 
 # Elemental
 AddIcon specialization=3 help=main
 {
-	if target.InRange(lightning_bolt_elemental) and HasFullControl() and InCombat() and not target.DebuffPresent(crowd_control_debuff)
+	if target.InRange(lightning_bolt) and HasFullControl() and InCombat() and not target.DebuffPresent(crowd_control_debuff)
     {
 		# Cooldowns
 		if Boss() and { Speed() == 0 or BuffPresent(movement_allowed_buff) } restorationDefaultCdActions()
@@ -35,7 +35,7 @@ AddFunction InterruptActions
 	#	if target.Distance(less 5) and not target.Classification(worldboss) Spell(war_stomp)
 	#	if target.InRange(quaking_palm) and not target.Classification(worldboss) Spell(quaking_palm)
 		# if not target.Classification(worldboss) and target.RemainingCastTime() > 2 Spell(capacitor_totem)
-	}
+	#}
 }
 
 AddFunction SaveActions
@@ -59,9 +59,9 @@ AddFunction restorationUseItemActions
 AddFunction restorationdefaultmainactions
 {
  #flame_shock,target_if=(!ticking|dot.flame_shock.remains<=gcd)|refreshable
- if not target.debuffpresent(flame_shock_restoration_debuff) or target.debuffremaining(flame_shock_restoration_debuff) <= gcd() or target.refreshable(flame_shock_restoration_debuff) spell(flame_shock_restoration)
+ if not target.debuffpresent(flame_shock_restoration) or target.debuffremaining(flame_shock_restoration) <= gcd() or target.refreshable(flame_shock_restoration) spell(flame_shock_restoration)
  #lava_burst,if=dot.flame_shock.remains>cast_time&cooldown_react
- if target.debuffremaining(flame_shock_restoration_debuff) > casttime(lava_burst) and not spellcooldown(lava_burst) > 0 spell(lava_burst)
+ if target.debuffremaining(flame_shock_restoration) > casttime(lava_burst) and not spellcooldown(lava_burst) > 0 spell(lava_burst)
  #concentrated_flame,if=dot.concentrated_flame_burn.remains=0
  if not target.debuffremaining(concentrated_flame_burn_debuff) > 0 spell(concentrated_flame_essence)
  #lightning_bolt,if=spell_targets.chain_lightning<2
@@ -78,12 +78,12 @@ AddFunction restorationdefaultmainpostconditions
 
 AddFunction restorationdefaultshortcdactions
 {
- unless { not target.debuffpresent(flame_shock_restoration_debuff) or target.debuffremaining(flame_shock_restoration_debuff) <= gcd() or target.refreshable(flame_shock_restoration_debuff) } and spell(flame_shock_restoration)
+ unless { not target.debuffpresent(flame_shock_restoration) or target.debuffremaining(flame_shock_restoration) <= gcd() or target.refreshable(flame_shock_restoration) } and spell(flame_shock_restoration)
  {
   #worldvein_resonance
   spell(worldvein_resonance_essence)
 
-  unless target.debuffremaining(flame_shock_restoration_debuff) > casttime(lava_burst) and not spellcooldown(lava_burst) > 0 and spell(lava_burst) or not target.debuffremaining(concentrated_flame_burn_debuff) > 0 and spell(concentrated_flame_essence)
+  unless target.debuffremaining(flame_shock_restoration) > casttime(lava_burst) and not spellcooldown(lava_burst) > 0 and spell(lava_burst) or not target.debuffremaining(concentrated_flame_burn_debuff) > 0 and spell(concentrated_flame_essence)
   {
    #ripple_in_space
    spell(ripple_in_space_essence)
@@ -95,7 +95,7 @@ AddFunction restorationdefaultshortcdactions
 
 AddFunction restorationdefaultshortcdpostconditions
 {
- { not target.debuffpresent(flame_shock_restoration_debuff) or target.debuffremaining(flame_shock_restoration_debuff) <= gcd() or target.refreshable(flame_shock_restoration_debuff) } and spell(flame_shock_restoration) or target.debuffremaining(flame_shock_restoration_debuff) > casttime(lava_burst) and not spellcooldown(lava_burst) > 0 and spell(lava_burst) or not target.debuffremaining(concentrated_flame_burn_debuff) > 0 and spell(concentrated_flame_essence) or enemies(tagged=1) < 2 and spell(lightning_bolt) or enemies(tagged=1) > 1 and spell(chain_lightning_restoration) or speed() > 0 and spell(flame_shock_restoration)
+ { not target.debuffpresent(flame_shock_restoration) or target.debuffremaining(flame_shock_restoration) <= gcd() or target.refreshable(flame_shock_restoration) } and spell(flame_shock_restoration) or target.debuffremaining(flame_shock_restoration) > casttime(lava_burst) and not spellcooldown(lava_burst) > 0 and spell(lava_burst) or not target.debuffremaining(concentrated_flame_burn_debuff) > 0 and spell(concentrated_flame_essence) or enemies(tagged=1) < 2 and spell(lightning_bolt) or enemies(tagged=1) > 1 and spell(chain_lightning_restoration) or speed() > 0 and spell(flame_shock_restoration)
 }
 
 AddFunction restorationdefaultcdactions
@@ -105,9 +105,9 @@ AddFunction restorationdefaultcdactions
  #wind_shear
  #restorationinterruptactions()
  #spiritwalkers_grace,moving=1,if=movement.distance>6
- if speed() > 0 and target.distance() > 6 spell(spiritwalkers_grace)
+ #if speed() > 0 and target.distance() > 6 spell(spiritwalkers_grace)
 
- unless { not target.debuffpresent(flame_shock_restoration_debuff) or target.debuffremaining(flame_shock_restoration_debuff) <= gcd() or target.refreshable(flame_shock_restoration_debuff) } and spell(flame_shock_restoration)
+ unless { not target.debuffpresent(flame_shock_restoration) or target.debuffremaining(flame_shock_restoration) <= gcd() or target.refreshable(flame_shock_restoration) } and spell(flame_shock_restoration)
  {
   #use_items
   #restorationuseitemactions()
@@ -120,7 +120,7 @@ AddFunction restorationdefaultcdactions
   #ancestral_call
   spell(ancestral_call)
 
-  unless spell(worldvein_resonance_essence) or target.debuffremaining(flame_shock_restoration_debuff) > casttime(lava_burst) and not spellcooldown(lava_burst) > 0 and spell(lava_burst) or not target.debuffremaining(concentrated_flame_burn_debuff) > 0 and spell(concentrated_flame_essence) or spell(ripple_in_space_essence)
+  unless spell(worldvein_resonance_essence) or target.debuffremaining(flame_shock_restoration) > casttime(lava_burst) and not spellcooldown(lava_burst) > 0 and spell(lava_burst) or not target.debuffremaining(concentrated_flame_burn_debuff) > 0 and spell(concentrated_flame_essence) or spell(ripple_in_space_essence)
   {
    #earth_elemental
    #spell(earth_elemental)
@@ -130,7 +130,7 @@ AddFunction restorationdefaultcdactions
 
 AddFunction restorationdefaultcdpostconditions
 {
- { not target.debuffpresent(flame_shock_restoration_debuff) or target.debuffremaining(flame_shock_restoration_debuff) <= gcd() or target.refreshable(flame_shock_restoration_debuff) } and spell(flame_shock_restoration) or spell(worldvein_resonance_essence) or target.debuffremaining(flame_shock_restoration_debuff) > casttime(lava_burst) and not spellcooldown(lava_burst) > 0 and spell(lava_burst) or not target.debuffremaining(concentrated_flame_burn_debuff) > 0 and spell(concentrated_flame_essence) or spell(ripple_in_space_essence) or spell(bag_of_tricks) or enemies(tagged=1) < 2 and spell(lightning_bolt) or enemies(tagged=1) > 1 and spell(chain_lightning_restoration) or speed() > 0 and spell(flame_shock_restoration)
+ { not target.debuffpresent(flame_shock_restoration) or target.debuffremaining(flame_shock_restoration) <= gcd() or target.refreshable(flame_shock_restoration) } and spell(flame_shock_restoration) or spell(worldvein_resonance_essence) or target.debuffremaining(flame_shock_restoration) > casttime(lava_burst) and not spellcooldown(lava_burst) > 0 and spell(lava_burst) or not target.debuffremaining(concentrated_flame_burn_debuff) > 0 and spell(concentrated_flame_essence) or spell(ripple_in_space_essence) or spell(bag_of_tricks) or enemies(tagged=1) < 2 and spell(lightning_bolt) or enemies(tagged=1) > 1 and spell(chain_lightning_restoration) or speed() > 0 and spell(flame_shock_restoration)
 }
 
 ### actions.precombat

@@ -15,6 +15,7 @@ AddIcon specialization=3 help=main
 {
 	if target.InRange(lightning_bolt) and HasFullControl() and InCombat() and not target.DebuffPresent(crowd_control_debuff) and not Mounted()
     {
+			if speed() > 0 and BuffPresent(lava_surge) Spell(lava_burst)
 			if Speed() > 0 spell(flame_shock_restoration)
 		# Cooldowns
 		if Boss() and { Speed() == 0 or BuffPresent(movement_allowed_buff) } restorationDefaultCdActions()

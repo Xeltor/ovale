@@ -175,6 +175,6 @@ AddFunction restorationprecombatcdpostconditions
 
 ]]
 
-		OvaleScripts:RegisterScript("SHAMAN", "elemental", name, desc, code, "script")
+		OvaleScripts:RegisterScript("SHAMAN", "restoration", name, desc, code, "script")
 	end
 end

@@ -9,7 +9,7 @@ do
 #	class=druid
 #	spec=guardian
 #	talents=3323323
-	
+
 Include(ovale_common)
 
 Include(ovale_trinkets_mop)
@@ -37,13 +37,13 @@ AddIcon specialization=3 help=main
 			#if not BuffPresent(bear_form) Spell(bear_form)
 		}
 	}
-	
+
 	# Activate cat form when this checkbox is on.
-		
+
 	# Rotation
 	if Stance(2) and target.InRange(rake) and HasFullControl() and target.Present()
 	{
-	
+
 		#cat rotation
 		if BuffPresent(prowl_buff) or BuffPresent(shadowmeld_buff) Spell(rake)
 		#ferocious_bite,target_if=dot.rip.ticking&dot.rip.remains<3&target.time_to_die>10&(talent.sabertooth.enabled)
@@ -60,21 +60,22 @@ AddIcon specialization=3 help=main
 		if target.DebuffPresent(rake_debuff) and target.DebuffPresent(rip_debuff) Spell(bear_form)
 		if target.DebuffRemaining(rake_debuff) > { PowerCost(shred) + PowerCost(rake) - Energy() } / EnergyRegenRate() Spell(shred)
 	}
-	
+
 	if Stance(1) and target.InRange(mangle) and HasFullControl() and target.Present()
 	{
+		if (mouseover.IsDead() and Rage() >= 30) Spell(Rebirth)
 		if ( HealthPercent() < 70  and not BuffPresent(frenzied_regeneration_buff))Spell(frenzied_regeneration)
 		# AOE for threat!
-	
+
 		if Boss()
 		{
 			GuardianDefaultCdActions()
 		}
-	
+
 		# Short Cooldowns
 		if not target.DebuffPresent(concentrated_flame_burn_debuff) Spell(concentrated_flame_essence)
 		GuardianDefaultShortCdActions()
-	
+
 		# Default Actions
 		GuardianDefaultMainActions()
 	}
@@ -95,7 +96,7 @@ Include(ovale_druid_spells)
 
 AddFunction GuardianInterruptActions
 {
- 
+
 }
 
 AddFunction GuardianUseHeartEssence
@@ -105,7 +106,7 @@ AddFunction GuardianUseHeartEssence
 
 AddFunction GuardianUseItemActions
 {
- 
+
 }
 
 AddFunction GuardianGetInMeleeRange
@@ -127,9 +128,9 @@ AddFunction GuardianDefaultMainActions
 
  unless GuardianCooldownsMainPostConditions()
  {
-   
+
   if (not CheckBoxOn(useMaul)) Spell(ironfur)
-	
+
   if not(target.DebuffStacks(thrash_bear_debuff) == MaxStacks(thrash_bear_debuff)) or target.DebuffRefreshable(thrash_bear_debuff) Spell(thrash)
   #maul,if=rage.deficit<10&active_enemies<4
   if RageDeficit() < 10 and enemies(tagged=1) < 4 Spell(maul)

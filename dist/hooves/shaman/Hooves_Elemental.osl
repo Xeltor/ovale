@@ -63,7 +63,7 @@ AddFunction InterruptActions
 
 ### actions.default
 
-AddFunction defaultmainactions
+AddFunction elementaldefaultmainactions
 {
  #bloodlust,if=azerite.ancestral_resonance.enabled
  #if hasazeritetrait(ancestral_resonance_trait) spell(burst_haste)
@@ -87,12 +87,12 @@ AddFunction defaultmainactions
  }
 }
 
-AddFunction defaultmainpostconditions
+AddFunction elementaldefaultmainpostconditions
 {
  enemies(tagged=1) > 2 and { enemies(tagged=1) > 2 or enemies(tagged=1) > 2 } and elementalaoemainpostconditions() or enemies(tagged=1) >= 2 and { enemies(tagged=1) < 2 or enemies(tagged=1) < 2 } and elementalfunnelmainpostconditions() or enemies(tagged=1) <= 2 and targetmainpostconditions()
 }
 
-AddFunction defaultshortcdactions
+AddFunction elementaldefaultshortcdactions
 {
  unless hasazeritetrait(ancestral_resonance_trait) or not target.debuffpresent(flame_shock_debuff) and enemies(tagged=1) < 4 and { spellcooldown(storm_elemental) < spellcooldownduration(storm_elemental) - 30 or buffstacks(wind_gust_buff) < 14 } and spell(flame_shock) or hastalent(totem_mastery_talent_elemental) and totemremaining(totem_mastery_elemental) < 2 and spell(totem_mastery_elemental)
  {
@@ -125,12 +125,12 @@ AddFunction defaultshortcdactions
  }
 }
 
-AddFunction defaultshortcdpostconditions
+AddFunction elementaldefaultshortcdpostconditions
 {
  hasazeritetrait(ancestral_resonance_trait) or not target.debuffpresent(flame_shock_debuff) and enemies(tagged=1) < 4 and { spellcooldown(storm_elemental) < spellcooldownduration(storm_elemental) - 30 or buffstacks(wind_gust_buff) < 14 } and spell(flame_shock) or hastalent(totem_mastery_talent_elemental) and totemremaining(totem_mastery_elemental) < 2 and spell(totem_mastery_elemental) or enemies(tagged=1) > 2 and { enemies(tagged=1) > 2 or enemies(tagged=1) > 2 } and elementalaoeshortcdpostconditions() or enemies(tagged=1) >= 2 and { enemies(tagged=1) < 2 or enemies(tagged=1) < 2 } and elementalfunnelshortcdpostconditions() or enemies(tagged=1) <= 2 and targetshortcdpostconditions()
 }
 
-AddFunction defaultcdactions
+AddFunction elementaldefaultcdactions
 {
  unless hasazeritetrait(ancestral_resonance_trait)
  {
@@ -142,7 +142,6 @@ AddFunction defaultcdactions
   unless not target.debuffpresent(flame_shock_debuff) and enemies(tagged=1) < 4 and { spellcooldown(storm_elemental) < spellcooldownduration(storm_elemental) - 30 or buffstacks(wind_gust_buff) < 14 } and spell(flame_shock) or hastalent(totem_mastery_talent_elemental) and totemremaining(totem_mastery_elemental) < 2 and spell(totem_mastery_elemental)
   {
    #use_items
-   elementaluseitemactions()
    #guardian_of_azeroth,if=dot.flame_shock.ticking&(!talent.storm_elemental.enabled&(cooldown.fire_elemental.duration-30<cooldown.fire_elemental.remains|expected_combat_length-time>190|expected_combat_length-time<32|!(cooldown.fire_elemental.remains+30<expected_combat_length-time)|cooldown.fire_elemental.remains<2)|talent.storm_elemental.enabled&(cooldown.storm_elemental.duration-30<cooldown.storm_elemental.remains|expected_combat_length-time>190|expected_combat_length-time<35|!(cooldown.storm_elemental.remains+30<expected_combat_length-time)|cooldown.storm_elemental.remains<2))
    if target.debuffpresent(flame_shock_debuff) and { not hastalent(storm_elemental_talent) and { spellcooldownduration(fire_elemental) - 30 < spellcooldown(fire_elemental) or 600 - timeincombat() > 190 or 600 - timeincombat() < 32 or not spellcooldown(fire_elemental) + 30 < 600 - timeincombat() or spellcooldown(fire_elemental) < 2 } or hastalent(storm_elemental_talent) and { spellcooldownduration(storm_elemental) - 30 < spellcooldown(storm_elemental) or 600 - timeincombat() > 190 or 600 - timeincombat() < 35 or not spellcooldown(storm_elemental) + 30 < 600 - timeincombat() or spellcooldown(storm_elemental) < 2 } } spell(guardian_of_azeroth)
    #fire_elemental,if=!talent.storm_elemental.enabled&(!essence.condensed_lifeforce.major|cooldown.guardian_of_azeroth.remains>150|expected_combat_length-time<30|expected_combat_length-time<60|expected_combat_length-time>155|!(cooldown.guardian_of_azeroth.remains+30<expected_combat_length-time))
@@ -191,7 +190,7 @@ AddFunction defaultcdactions
  }
 }
 
-AddFunction defaultcdpostconditions
+AddFunction elementaldefaultcdpostconditions
 {
  hasazeritetrait(ancestral_resonance_trait) or not target.debuffpresent(flame_shock_debuff) and enemies(tagged=1) < 4 and { spellcooldown(storm_elemental) < spellcooldownduration(storm_elemental) - 30 or buffstacks(wind_gust_buff) < 14 } and spell(flame_shock) or hastalent(totem_mastery_talent_elemental) and totemremaining(totem_mastery_elemental) < 2 and spell(totem_mastery_elemental) or spell(purifying_blast) or spell(the_unbound_force) or spell(ripple_in_space_essence) or { hastalent(unlimited_power_talent) or buffpresent(stormkeeper_buff) or hastalent(ascendance_talent) and { hastalent(storm_elemental_talent) and spellcooldown(storm_elemental) < spellcooldownduration(storm_elemental) - 30 and spellcooldown(storm_elemental) > 15 or not hastalent(storm_elemental_talent) } and { not hastalent(icefury_talent) or not buffpresent(icefury_buff) and not { not spellcooldown(icefury) > 0 } } or not { not spellcooldown(ascendance_elemental) > 0 } } and spell(worldvein_resonance_essence) or { not hastalent(ascendance_talent) or not buffpresent(ascendance_elemental_buff) } and spell(bag_of_tricks) or enemies(tagged=1) > 2 and { enemies(tagged=1) > 2 or enemies(tagged=1) > 2 } and elementalaoecdpostconditions() or enemies(tagged=1) >= 2 and { enemies(tagged=1) < 2 or enemies(tagged=1) < 2 } and elementalfunnelcdpostconditions() or enemies(tagged=1) <= 2 and targetcdpostconditions()
 }
@@ -428,7 +427,6 @@ AddFunction elementalprecombatcdactions
   #earth_elemental,if=!talent.primal_elementalist.enabled
   if not hastalent(primal_elementalist_talent) spell(earth_elemental)
   #use_item,name=azsharas_font_of_power
-  elementaluseitemactions()
 
   unless hastalent(stormkeeper_talent) and { 0 < 3 or 600 > 50 } and spell(stormkeeper)
   {

@@ -138,7 +138,7 @@ AddFunction protectiondefaultcdactions
    unless { buffexpires(avatar) and not target.debuffremaining(concentrated_flame_burn_debuff) > 0 or azeriteessencerank(the_crucible_of_flame_essence_id) < 3 } and spell(concentrated_flame_essence)
    {
     #last_stand,if=cooldown.anima_of_death.remains<=2
-    if spellcooldown(anima_of_death) <= 2 and not checkboxon(UseRevenge) spell(last_stand)
+    if buffexpires(shield_block_buff) and not checkboxon(UseRevenge) spell(last_stand)
 
     unless spell(avatar)
     {
@@ -172,7 +172,7 @@ AddFunction protectionaoemainactions
  #dragon_roar
  spell(dragon_roar)
  #revenge
- spell(revenge)
+ if BuffPresent(revenge_buff) or checkboxon(UseRevenge) spell(revenge)
  #shield_slam
  spell(shield_slam)
 }
@@ -193,7 +193,8 @@ AddFunction protectionaoeshortcdactions
    #ravager
    spell(ravager_protection)
    #shield_block,if=cooldown.shield_slam.ready&buff.shield_block.down
-   if spellcooldown(shield_slam) == 0 and buffexpires(shield_block_buff) and not checkboxon(UseRevenge) spell(shield_block)
+ 	 if spellcooldown(shield_slam) == 0 and buffexpires(shield_block_buff) and buffexpires(last_stand_buff) and not checkboxon(UseRevenge) spell(shield_block)
+
   }
  }
 }
@@ -287,7 +288,7 @@ AddFunction protectionstmainactions
  #thunder_clap
  spell(thunder_clap)
  #revenge
- spell(revenge)
+ if BuffPresent(revenge_buff) or checkboxon(UseRevenge) spell(revenge)
  #devastate
  spell(devastate)
 }
@@ -301,7 +302,7 @@ AddFunction protectionstshortcdactions
  unless enemies(tagged=1) == 2 and hastalent(unstoppable_force_talent) and buffpresent(avatar) and spell(thunder_clap)
  {
   #shield_block,if=cooldown.shield_slam.ready&buff.shield_block.down
-  if spellcooldown(shield_slam) == 0 and buffexpires(shield_block_buff) and not checkboxon(UseRevenge) spell(shield_block)
+  if spellcooldown(shield_slam) == 0 and buffexpires(shield_block_buff) and buffexpires(last_stand_buff) and not checkboxon(UseRevenge) spell(shield_block)
 
   unless buffpresent(shield_block_buff) and spell(shield_slam) or hastalent(unstoppable_force_talent) and buffpresent(avatar) and spell(thunder_clap)
   {

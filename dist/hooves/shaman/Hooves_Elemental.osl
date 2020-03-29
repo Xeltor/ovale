@@ -22,20 +22,19 @@ AddIcon specialization=1 help=main
 	if InCombat() InterruptActions()
 
 	# Save ass
-	if not mounted() SaveActions()
 
 	if target.InRange(lightning_bolt_elemental) and HasFullControl() and InCombat() and not target.DebuffPresent(crowd_control_debuff)
     {
 		if PreviousGCDSpell(lava_burst) and not target.DebuffPresent(flame_shock_debuff) Spell(flame_shock)
 
 		# Cooldowns
-		if Boss() and { Speed() == 0 or BuffPresent(movement_allowed_buff) } ElementalDefaultCdActions()
+		if Boss() and { Speed() == 0 or BuffPresent(movement_allowed_buff) } DefaultCdActions()
 
 		# Short Cooldowns
-		if Speed() == 0 or BuffPresent(movement_allowed_buff) ElementalDefaultShortCdActions()
+		if Speed() == 0 or BuffPresent(movement_allowed_buff) DefaultShortCdActions()
 
 		# Default rotation
-		if Speed() == 0 or BuffPresent(movement_allowed_buff) ElementalDefaultMainActions()
+		if Speed() == 0 or BuffPresent(movement_allowed_buff) DefaultMainActions()
 
 		#lava_burst,moving=1,if=talent.ascendance.enabled
 		if Speed() > 0 and Talent(ascendance_talent) Spell(lava_burst)
@@ -57,26 +56,14 @@ AddFunction InterruptActions
 	#	if target.Distance(less 5) and not target.Classification(worldboss) Spell(war_stomp)
 	#	if target.InRange(quaking_palm) and not target.Classification(worldboss) Spell(quaking_palm)
 		# if not target.Classification(worldboss) and target.RemainingCastTime() > 2 Spell(capacitor_totem)
-	}
+	#}
 }
 
-AddFunction SaveActions
-{
-	#if HealthPercent() <= 50 and InCombat() Spell(astral_shift)
-	#if { Speed() == 0 or BuffPresent(movement_allowed_buff) } and HealthPercent() <= 50 and ManaPercent() > 25 and CanCast(healing_surge) and { not InCombat() or target.istargetingplayer() } Spell(healing_surge)
-	#if not BuffPresent(earth_shield_buff) and HealthPercent() < 100 and target.istargetingplayer() Spell(earth_shield)
-	#if target.istargetingplayer() and HealthPercent() < 50 Spell(earth_elemental)
-}
 
-AddFunction ElementalUseItemActions
-{
-	#if Item(Trinket0Slot usable=1) Texture(inv_jewelry_talisman_12)
-	#if Item(Trinket1Slot usable=1) Texture(inv_jewelry_talisman_12)
-}
 
 ### actions.default
 
-AddFunction elementaldefaultmainactions
+AddFunction defaultmainactions
 {
  #bloodlust,if=azerite.ancestral_resonance.enabled
  #if hasazeritetrait(ancestral_resonance_trait) spell(burst_haste)
@@ -100,12 +87,12 @@ AddFunction elementaldefaultmainactions
  }
 }
 
-AddFunction elementaldefaultmainpostconditions
+AddFunction defaultmainpostconditions
 {
  enemies(tagged=1) > 2 and { enemies(tagged=1) > 2 or enemies(tagged=1) > 2 } and elementalaoemainpostconditions() or enemies(tagged=1) >= 2 and { enemies(tagged=1) < 2 or enemies(tagged=1) < 2 } and elementalfunnelmainpostconditions() or enemies(tagged=1) <= 2 and targetmainpostconditions()
 }
 
-AddFunction elementaldefaultshortcdactions
+AddFunction defaultshortcdactions
 {
  unless hasazeritetrait(ancestral_resonance_trait) or not target.debuffpresent(flame_shock_debuff) and enemies(tagged=1) < 4 and { spellcooldown(storm_elemental) < spellcooldownduration(storm_elemental) - 30 or buffstacks(wind_gust_buff) < 14 } and spell(flame_shock) or hastalent(totem_mastery_talent_elemental) and totemremaining(totem_mastery_elemental) < 2 and spell(totem_mastery_elemental)
  {
@@ -138,12 +125,12 @@ AddFunction elementaldefaultshortcdactions
  }
 }
 
-AddFunction elementaldefaultshortcdpostconditions
+AddFunction defaultshortcdpostconditions
 {
  hasazeritetrait(ancestral_resonance_trait) or not target.debuffpresent(flame_shock_debuff) and enemies(tagged=1) < 4 and { spellcooldown(storm_elemental) < spellcooldownduration(storm_elemental) - 30 or buffstacks(wind_gust_buff) < 14 } and spell(flame_shock) or hastalent(totem_mastery_talent_elemental) and totemremaining(totem_mastery_elemental) < 2 and spell(totem_mastery_elemental) or enemies(tagged=1) > 2 and { enemies(tagged=1) > 2 or enemies(tagged=1) > 2 } and elementalaoeshortcdpostconditions() or enemies(tagged=1) >= 2 and { enemies(tagged=1) < 2 or enemies(tagged=1) < 2 } and elementalfunnelshortcdpostconditions() or enemies(tagged=1) <= 2 and targetshortcdpostconditions()
 }
 
-AddFunction elementaldefaultcdactions
+AddFunction defaultcdactions
 {
  unless hasazeritetrait(ancestral_resonance_trait)
  {
@@ -204,7 +191,7 @@ AddFunction elementaldefaultcdactions
  }
 }
 
-AddFunction elementaldefaultcdpostconditions
+AddFunction defaultcdpostconditions
 {
  hasazeritetrait(ancestral_resonance_trait) or not target.debuffpresent(flame_shock_debuff) and enemies(tagged=1) < 4 and { spellcooldown(storm_elemental) < spellcooldownduration(storm_elemental) - 30 or buffstacks(wind_gust_buff) < 14 } and spell(flame_shock) or hastalent(totem_mastery_talent_elemental) and totemremaining(totem_mastery_elemental) < 2 and spell(totem_mastery_elemental) or spell(purifying_blast) or spell(the_unbound_force) or spell(ripple_in_space_essence) or { hastalent(unlimited_power_talent) or buffpresent(stormkeeper_buff) or hastalent(ascendance_talent) and { hastalent(storm_elemental_talent) and spellcooldown(storm_elemental) < spellcooldownduration(storm_elemental) - 30 and spellcooldown(storm_elemental) > 15 or not hastalent(storm_elemental_talent) } and { not hastalent(icefury_talent) or not buffpresent(icefury_buff) and not { not spellcooldown(icefury) > 0 } } or not { not spellcooldown(ascendance_elemental) > 0 } } and spell(worldvein_resonance_essence) or { not hastalent(ascendance_talent) or not buffpresent(ascendance_elemental_buff) } and spell(bag_of_tricks) or enemies(tagged=1) > 2 and { enemies(tagged=1) > 2 or enemies(tagged=1) > 2 } and elementalaoecdpostconditions() or enemies(tagged=1) >= 2 and { enemies(tagged=1) < 2 or enemies(tagged=1) < 2 } and elementalfunnelcdpostconditions() or enemies(tagged=1) <= 2 and targetcdpostconditions()
 }

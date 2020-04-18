@@ -82,7 +82,7 @@ AddFunction elementaldefaultmainactions
   unless enemies(tagged=1) >= 2 and { enemies(tagged=1) < 2 or enemies(tagged=1) < 2 } and elementalfunnelmainpostconditions()
   {
    #run_action_list,name=single_target,if=active_enemies<=2
-   if enemies(tagged=1) <= 2 targetmainactions()
+   if enemies(tagged=1) <= 2 elementaltargetmainactions()
   }
  }
 }
@@ -137,7 +137,6 @@ AddFunction elementaldefaultcdactions
   #potion,if=expected_combat_length-time<60|cooldown.guardian_of_azeroth.remains<30
   if { 600 - timeincombat() < 60 or spellcooldown(guardian_of_azeroth) < 30 } and checkboxon(opt_use_consumables) and target.classification(worldboss) item(unbridled_fury_item usable=1)
   #wind_shear
-  elementalinterruptactions()
 
   unless not target.debuffpresent(flame_shock_debuff) and enemies(tagged=1) < 4 and { spellcooldown(storm_elemental) < spellcooldownduration(storm_elemental) - 30 or buffstacks(wind_gust_buff) < 14 } and spell(flame_shock) or hastalent(totem_mastery_talent_elemental) and totemremaining(totem_mastery_elemental) < 2 and spell(totem_mastery_elemental)
   {
@@ -147,7 +146,7 @@ AddFunction elementaldefaultcdactions
    #fire_elemental,if=!talent.storm_elemental.enabled&(!essence.condensed_lifeforce.major|cooldown.guardian_of_azeroth.remains>150|expected_combat_length-time<30|expected_combat_length-time<60|expected_combat_length-time>155|!(cooldown.guardian_of_azeroth.remains+30<expected_combat_length-time))
    if not hastalent(storm_elemental_talent) and { not azeriteessenceismajor(condensed_life_force_essence_id) or spellcooldown(guardian_of_azeroth) > 150 or 600 - timeincombat() < 30 or 600 - timeincombat() < 60 or 600 - timeincombat() > 155 or not spellcooldown(guardian_of_azeroth) + 30 < 600 - timeincombat() } spell(fire_elemental)
    #focused_azerite_beam
-   spell(focused_azerite_beam)
+   #spell(focused_azerite_beam)
 
    unless spell(purifying_blast) or spell(the_unbound_force)
    {

@@ -27,7 +27,7 @@ AddIcon specialization=1 help=main
 	}
 
 	# if InCombat() and not target.InRange(chaos_strike) and Falling() and not BuffPresent(glide_buff) Spell(glide)
-	if InCombat() and not target.InRange(chaos_strike)
+	if InCombat() and not target.InRange(chaos_strike) and target.Present() and not target.IsFriend()
 	{
 		if Falling() Spell(felblade)
 		Spell(throw_glaive_havoc)

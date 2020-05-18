@@ -407,8 +407,6 @@ __exports.Emiter = __class(nil, {
                     self:AddSymbol(annotation, "regrowth")
                 elseif className == "DRUID" and action == "solar_wrath_balance" and specialization == "balance" then
                   conditionCode = "{ Speed() == 0 or BuffPresent(movement_allowed_buff) }"
-                elseif className == "DRUID" and action == "starfall" and specialization == "balance" then
-                  conditionCode = "{ mouseover.present() and not mouseover.IsFriend() and mouseover.healthpercent() < 100 }"
                 elseif className == "DRUID" and action == "lunar_strike" and specialization == "balance" then
                   conditionCode = "{ Speed() == 0 or BuffPresent(movement_allowed_buff) }"
                 elseif className == "HUNTER" and action == "kill_command" then
@@ -1905,6 +1903,10 @@ __exports.Emiter = __class(nil, {
                 self:AddSymbol(annotation, buffName)
             elseif operand == "ovale.boss" then
                 code = "(target.Classification(normal) and Enemies(tagged=1) >= 7 and not IsGrouped()) or (target.Classification(elite) and Enemies(tagged=1) > 5) or Boss()"
+            elseif operand == "ovale.mouseover" then
+                code = "mouseover.Present() and mouseover.HealthPercent() < 100 and not mouseover.IsFriend()"
+            elseif operand == "ovale.movement" then
+                code = "(Speed() == 0 or BuffPresent(movement_allowed_buff))"
             elseif className == "DEATHKNIGHT" and sub(operand, 1, 24) == "pet.dancing_rune_weapon." then
                 local petOperand = sub(operand, 25)
                 local tokenIterator = gmatch(petOperand, OPERAND_TOKEN_PATTERN)

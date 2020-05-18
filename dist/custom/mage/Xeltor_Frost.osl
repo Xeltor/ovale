@@ -3,7 +3,7 @@ if not __exports then return end
 __exports.registerMageFrostXeltor = function(OvaleScripts)
 do
 	local name = "xeltor_frost"
-	local desc = "[Xel][8.2] Mage: Frost"
+	local desc = "[Xel][8.3] Mage: Frost"
 	local code = [[
 Include(ovale_common)
 Include(ovale_trinkets_mop)
@@ -15,13 +15,13 @@ AddIcon specialization=3 help=main
 	if not mounted() and not PlayerIsResting() and not IsDead() and not Dead()
 	{
 		#arcane_intellect
-		if not BuffPresent(arcane_intellect_buff any=1) and not { target.IsFriend() or target.Present() } Spell(arcane_intellect)
-		if not target.BuffPresent(arcane_intellect_buff any=1) and target.IsFriend() Spell(arcane_intellect)
+		if not BuffPresent(arcane_intellect_buff any=1) and { not target.Present() or not target.IsFriend() } Spell(arcane_intellect)
+		if UnitInParty() and PartyMembersInRange(arcane_intellect) > BuffCountOnAny(arcane_intellect_buff) and PartyMembersWithHealthPercent(more 0) > BuffCountOnAny(arcane_intellect_buff) and { not target.Present() or not target.IsFriend() } Spell(arcane_intellect)
 		#summon_arcane_familiar
 		if not pet.Present() and { Speed() == 0 or BuffPresent(movement_allowed_buff) } and not Talent(lonely_winter_talent) Spell(summon_water_elemental)
 	}
 
-	if InCombat() InterruptActions()
+	if InCombat() frostinterruptactions()
 
 	if InCombat() and not target.IsFriend() SafetyDance()
 
@@ -30,549 +30,540 @@ AddIcon specialization=3 help=main
 		if BuffExpires(ice_floes_buff) and not { Speed() == 0 or BuffPresent(movement_allowed_buff) } Spell(ice_floes)
 
 		# Cooldowns
-		if Boss()
-		{
-			if Speed() == 0 or BuffPresent(movement_allowed_buff) FrostDefaultCdActions()
-		}
-		if Speed() == 0 or BuffPresent(movement_allowed_buff) FrostDefaultShortCdActions()
-		if Speed() == 0 or BuffPresent(movement_allowed_buff) FrostDefaultMainActions()
-		#ice_lance,moving=1
-		if Speed() > 0 and not BuffPresent(ice_floes_buff) and not SpellCharges(ice_floes) Spell(ice_lance)
+		defaultcdactions()
+		defaultshortcdactions()
+		defaultmainactions()
 	}
 }
 
-AddFunction InterruptActions
+AddFunction frostinterruptactions
 {
-	if not target.IsFriend() and target.IsInterruptible() and { target.MustBeInterrupted() or Level() < 100 or target.IsPVP() }
-	{
-		if target.InRange(counterspell) Spell(counterspell)
-		if not target.Classification(worldboss)
-		{
-			if target.Distance(less 8) Spell(arcane_torrent_mana)
-			if target.InRange(quaking_palm) Spell(quaking_palm)
-		}
-	}
+ if target.hasmanagedinterrupts() and target.mustbeinterrupted() or not target.hasmanagedinterrupts() and target.isinterruptible()
+ {
+  if target.inrange(counterspell) and target.isinterruptible() and target.remainingcasttime() <= casttime(counterspell) + gcd() spell(counterspell)
+  if target.inrange(quaking_palm) and not target.classification(worldboss) and target.remainingcasttime() <= casttime(quaking_palm) + gcd() spell(quaking_palm)
+  if target.distance(less 6) and not target.classification(worldboss) and target.remainingcasttime() <= casttime(haymaker) + gcd() spell(haymaker)
+ }
+}
+
+AddFunction frostuseitemactions
+{
+ if item(trinket0slot usable=1) texture(inv_jewelry_talisman_12)
+ if item(trinket1slot usable=1) texture(inv_jewelry_talisman_12)
 }
 
 AddFunction SafetyDance
 {
 	if target.istargetingplayer() and { target.distance() <= 8 or IncomingDamage(3) >= MaxHealth() * 0.01 } and not BuffPresent(ice_barrier_buff) Spell(ice_barrier)
 	if target.Distance(less 12) and not target.DebuffPresent(frost_nova_debuff) and target.IsPvP() and not IsBossFight() Spell(frost_nova)
-	if target.BuffStealable() and target.InRange(spellsteal) and not PreviousGCDSpell(spellsteal) and ManaPercent() > 90 Spell(spellsteal)
-}
-
-AddFunction FrostUseItemActions
-{
- if Item(Trinket0Slot usable=1) Texture(inv_jewelry_talisman_12)
- if Item(Trinket1Slot usable=1) Texture(inv_jewelry_talisman_12)
+	# if target.BuffStealable() and target.InRange(spellsteal) and not PreviousGCDSpell(spellsteal) and ManaPercent() > 90 Spell(spellsteal)
 }
 
 ### actions.default
 
-AddFunction FrostDefaultMainActions
+AddFunction defaultmainactions
 {
- #call_action_list,name=cooldowns
- FrostCooldownsMainActions()
+ #call_action_list,name=cooldowns,if=ovale.boss&ovale.movement
+ if { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and { speed() == 0 or buffpresent(movement_allowed_buff) } frostcooldownsmainactions()
 
- unless FrostCooldownsMainPostConditions()
+ unless { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and { speed() == 0 or buffpresent(movement_allowed_buff) } and frostcooldownsmainpostconditions()
  {
   #call_action_list,name=aoe,if=active_enemies>3&talent.freezing_rain.enabled|active_enemies>4
-  if Enemies(tagged=1) > 3 and Talent(freezing_rain_talent) or Enemies(tagged=1) > 4 FrostAoeMainActions()
+  if enemies(tagged=1) > 3 and hastalent(freezing_rain_talent) or enemies(tagged=1) > 4 frostaoemainactions()
 
-  unless { Enemies(tagged=1) > 3 and Talent(freezing_rain_talent) or Enemies(tagged=1) > 4 } and FrostAoeMainPostConditions()
+  unless { enemies(tagged=1) > 3 and hastalent(freezing_rain_talent) or enemies(tagged=1) > 4 } and frostaoemainpostconditions()
   {
    #call_action_list,name=single
-   FrostSingleMainActions()
+   frostsinglemainactions()
   }
  }
 }
 
-AddFunction FrostDefaultMainPostConditions
+AddFunction defaultmainpostconditions
 {
- FrostCooldownsMainPostConditions() or { Enemies(tagged=1) > 3 and Talent(freezing_rain_talent) or Enemies(tagged=1) > 4 } and FrostAoeMainPostConditions() or FrostSingleMainPostConditions()
+ { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and { speed() == 0 or buffpresent(movement_allowed_buff) } and frostcooldownsmainpostconditions() or { enemies(tagged=1) > 3 and hastalent(freezing_rain_talent) or enemies(tagged=1) > 4 } and frostaoemainpostconditions() or frostsinglemainpostconditions()
 }
 
-AddFunction FrostDefaultShortCdActions
+AddFunction defaultshortcdactions
 {
- #call_action_list,name=cooldowns
- FrostCooldownsShortCdActions()
+ #call_action_list,name=cooldowns,if=ovale.boss&ovale.movement
+ if { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and { speed() == 0 or buffpresent(movement_allowed_buff) } frostcooldownsshortcdactions()
 
- unless FrostCooldownsShortCdPostConditions()
+ unless { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and { speed() == 0 or buffpresent(movement_allowed_buff) } and frostcooldownsshortcdpostconditions()
  {
   #call_action_list,name=aoe,if=active_enemies>3&talent.freezing_rain.enabled|active_enemies>4
-  if Enemies(tagged=1) > 3 and Talent(freezing_rain_talent) or Enemies(tagged=1) > 4 FrostAoeShortCdActions()
+  if enemies(tagged=1) > 3 and hastalent(freezing_rain_talent) or enemies(tagged=1) > 4 frostaoeshortcdactions()
 
-  unless { Enemies(tagged=1) > 3 and Talent(freezing_rain_talent) or Enemies(tagged=1) > 4 } and FrostAoeShortCdPostConditions()
+  unless { enemies(tagged=1) > 3 and hastalent(freezing_rain_talent) or enemies(tagged=1) > 4 } and frostaoeshortcdpostconditions()
   {
    #call_action_list,name=single
-   FrostSingleShortCdActions()
+   frostsingleshortcdactions()
   }
  }
 }
 
-AddFunction FrostDefaultShortCdPostConditions
+AddFunction defaultshortcdpostconditions
 {
- FrostCooldownsShortCdPostConditions() or { Enemies(tagged=1) > 3 and Talent(freezing_rain_talent) or Enemies(tagged=1) > 4 } and FrostAoeShortCdPostConditions() or FrostSingleShortCdPostConditions()
+ { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and { speed() == 0 or buffpresent(movement_allowed_buff) } and frostcooldownsshortcdpostconditions() or { enemies(tagged=1) > 3 and hastalent(freezing_rain_talent) or enemies(tagged=1) > 4 } and frostaoeshortcdpostconditions() or frostsingleshortcdpostconditions()
 }
 
-AddFunction FrostDefaultCdActions
+AddFunction defaultcdactions
 {
  #counterspell
- # FrostInterruptActions()
- #call_action_list,name=cooldowns
- FrostCooldownsCdActions()
+ frostinterruptactions()
+ #call_action_list,name=cooldowns,if=ovale.boss&ovale.movement
+ if { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and { speed() == 0 or buffpresent(movement_allowed_buff) } frostcooldownscdactions()
 
- unless FrostCooldownsCdPostConditions()
+ unless { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and { speed() == 0 or buffpresent(movement_allowed_buff) } and frostcooldownscdpostconditions()
  {
   #call_action_list,name=aoe,if=active_enemies>3&talent.freezing_rain.enabled|active_enemies>4
-  if Enemies(tagged=1) > 3 and Talent(freezing_rain_talent) or Enemies(tagged=1) > 4 FrostAoeCdActions()
+  if enemies(tagged=1) > 3 and hastalent(freezing_rain_talent) or enemies(tagged=1) > 4 frostaoecdactions()
 
-  unless { Enemies(tagged=1) > 3 and Talent(freezing_rain_talent) or Enemies(tagged=1) > 4 } and FrostAoeCdPostConditions()
+  unless { enemies(tagged=1) > 3 and hastalent(freezing_rain_talent) or enemies(tagged=1) > 4 } and frostaoecdpostconditions()
   {
    #call_action_list,name=single
-   FrostSingleCdActions()
+   frostsinglecdactions()
   }
  }
 }
 
-AddFunction FrostDefaultCdPostConditions
+AddFunction defaultcdpostconditions
 {
- FrostCooldownsCdPostConditions() or { Enemies(tagged=1) > 3 and Talent(freezing_rain_talent) or Enemies(tagged=1) > 4 } and FrostAoeCdPostConditions() or FrostSingleCdPostConditions()
+ { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and { speed() == 0 or buffpresent(movement_allowed_buff) } and frostcooldownscdpostconditions() or { enemies(tagged=1) > 3 and hastalent(freezing_rain_talent) or enemies(tagged=1) > 4 } and frostaoecdpostconditions() or frostsinglecdpostconditions()
 }
 
 ### actions.aoe
 
-AddFunction FrostAoeMainActions
+AddFunction frostaoemainactions
 {
- #blizzard
- Spell(blizzard)
- #call_action_list,name=essences
- FrostEssencesMainActions()
+ #blizzard,if=ovale.mouseover&ovale.movement
+ if mouseover.present() and mouseover.healthpercent() < 100 and not mouseover.isfriend() and { speed() == 0 or buffpresent(movement_allowed_buff) } spell(blizzard)
+ #call_action_list,name=essences,if=ovale.boss
+ if target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() frostessencesmainactions()
 
- unless FrostEssencesMainPostConditions()
+ unless { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and frostessencesmainpostconditions()
  {
   #ice_nova
-  Spell(ice_nova)
-  #flurry,if=prev_gcd.1.ebonbolt|buff.brain_freeze.react&(prev_gcd.1.frostbolt&(buff.icicles.stack<4|!talent.glacial_spike.enabled)|prev_gcd.1.glacial_spike)
-  if PreviousGCDSpell(ebonbolt) or BuffPresent(brain_freeze_buff) and { PreviousGCDSpell(frostbolt) and { BuffStacks(icicles_buff) < 4 or not Talent(glacial_spike_talent) } or PreviousGCDSpell(glacial_spike) } Spell(flurry)
+  spell(ice_nova)
+  #flurry,if=(prev_gcd.1.ebonbolt|buff.brain_freeze.react&(prev_gcd.1.frostbolt&(buff.icicles.stack<4|!talent.glacial_spike.enabled)|prev_gcd.1.glacial_spike))&ovale.movement
+  if { previousgcdspell(ebonbolt) or buffpresent(brain_freeze_buff) and { previousgcdspell(frostbolt) and { buffstacks(icicles_buff) < 4 or not hastalent(glacial_spike_talent) } or previousgcdspell(glacial_spike) } } and { speed() == 0 or buffpresent(movement_allowed_buff) } spell(flurry)
   #ice_lance,if=buff.fingers_of_frost.react
-  if BuffPresent(fingers_of_frost_buff) Spell(ice_lance)
-  #ray_of_frost
-  Spell(ray_of_frost)
-  #ebonbolt
-  Spell(ebonbolt)
-  #glacial_spike
-  Spell(glacial_spike)
-  #frostbolt
-  Spell(frostbolt)
+  if buffpresent(fingers_of_frost_buff) spell(ice_lance)
+  #ray_of_frost,if=ovale.movement
+  if speed() == 0 or buffpresent(movement_allowed_buff) spell(ray_of_frost)
+  #ebonbolt,if=ovale.movement
+  if speed() == 0 or buffpresent(movement_allowed_buff) spell(ebonbolt)
+  #glacial_spike,if=ovale.movement
+  if speed() == 0 or buffpresent(movement_allowed_buff) spell(glacial_spike)
+  #frostbolt,if=ovale.movement
+  if speed() == 0 or buffpresent(movement_allowed_buff) spell(frostbolt)
   #call_action_list,name=movement
-  FrostMovementMainActions()
+  frostmovementmainactions()
 
-  unless FrostMovementMainPostConditions()
+  unless frostmovementmainpostconditions()
   {
    #ice_lance
-   Spell(ice_lance)
+   spell(ice_lance)
   }
  }
 }
 
-AddFunction FrostAoeMainPostConditions
+AddFunction frostaoemainpostconditions
 {
- FrostEssencesMainPostConditions() or FrostMovementMainPostConditions()
+ { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and frostessencesmainpostconditions() or frostmovementmainpostconditions()
 }
 
-AddFunction FrostAoeShortCdActions
+AddFunction frostaoeshortcdactions
 {
  #frozen_orb
- Spell(frozen_orb)
+ spell(frozen_orb)
 
- unless Spell(blizzard)
+ unless mouseover.present() and mouseover.healthpercent() < 100 and not mouseover.isfriend() and { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(blizzard)
  {
-  #call_action_list,name=essences
-  FrostEssencesShortCdActions()
+  #call_action_list,name=essences,if=ovale.boss
+  if target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() frostessencesshortcdactions()
 
-  unless FrostEssencesShortCdPostConditions()
+  unless { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and frostessencesshortcdpostconditions()
   {
    #comet_storm
-   Spell(comet_storm)
+   spell(comet_storm)
 
-   unless Spell(ice_nova) or { PreviousGCDSpell(ebonbolt) or BuffPresent(brain_freeze_buff) and { PreviousGCDSpell(frostbolt) and { BuffStacks(icicles_buff) < 4 or not Talent(glacial_spike_talent) } or PreviousGCDSpell(glacial_spike) } } and Spell(flurry) or BuffPresent(fingers_of_frost_buff) and Spell(ice_lance) or Spell(ray_of_frost) or Spell(ebonbolt) or Spell(glacial_spike)
+   unless spell(ice_nova) or { previousgcdspell(ebonbolt) or buffpresent(brain_freeze_buff) and { previousgcdspell(frostbolt) and { buffstacks(icicles_buff) < 4 or not hastalent(glacial_spike_talent) } or previousgcdspell(glacial_spike) } } and { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(flurry) or buffpresent(fingers_of_frost_buff) and spell(ice_lance) or { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(ray_of_frost) or { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(ebonbolt) or { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(glacial_spike)
    {
     #cone_of_cold
-    if target.Distance() < 12 Spell(cone_of_cold)
+    if target.distance() < 12 spell(cone_of_cold)
 
-    unless Spell(frostbolt)
+    unless { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(frostbolt)
     {
      #call_action_list,name=movement
-     FrostMovementShortCdActions()
+     frostmovementshortcdactions()
     }
    }
   }
  }
 }
 
-AddFunction FrostAoeShortCdPostConditions
+AddFunction frostaoeshortcdpostconditions
 {
- Spell(blizzard) or FrostEssencesShortCdPostConditions() or Spell(ice_nova) or { PreviousGCDSpell(ebonbolt) or BuffPresent(brain_freeze_buff) and { PreviousGCDSpell(frostbolt) and { BuffStacks(icicles_buff) < 4 or not Talent(glacial_spike_talent) } or PreviousGCDSpell(glacial_spike) } } and Spell(flurry) or BuffPresent(fingers_of_frost_buff) and Spell(ice_lance) or Spell(ray_of_frost) or Spell(ebonbolt) or Spell(glacial_spike) or Spell(frostbolt) or FrostMovementShortCdPostConditions() or Spell(ice_lance)
+ mouseover.present() and mouseover.healthpercent() < 100 and not mouseover.isfriend() and { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(blizzard) or { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and frostessencesshortcdpostconditions() or spell(ice_nova) or { previousgcdspell(ebonbolt) or buffpresent(brain_freeze_buff) and { previousgcdspell(frostbolt) and { buffstacks(icicles_buff) < 4 or not hastalent(glacial_spike_talent) } or previousgcdspell(glacial_spike) } } and { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(flurry) or buffpresent(fingers_of_frost_buff) and spell(ice_lance) or { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(ray_of_frost) or { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(ebonbolt) or { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(glacial_spike) or { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(frostbolt) or frostmovementshortcdpostconditions() or spell(ice_lance)
 }
 
-AddFunction FrostAoeCdActions
+AddFunction frostaoecdactions
 {
- unless Spell(frozen_orb) or Spell(blizzard)
+ unless spell(frozen_orb) or mouseover.present() and mouseover.healthpercent() < 100 and not mouseover.isfriend() and { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(blizzard)
  {
-  #call_action_list,name=essences
-  FrostEssencesCdActions()
+  #call_action_list,name=essences,if=ovale.boss
+  if target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() frostessencescdactions()
 
-  unless FrostEssencesCdPostConditions() or Spell(comet_storm) or Spell(ice_nova) or { PreviousGCDSpell(ebonbolt) or BuffPresent(brain_freeze_buff) and { PreviousGCDSpell(frostbolt) and { BuffStacks(icicles_buff) < 4 or not Talent(glacial_spike_talent) } or PreviousGCDSpell(glacial_spike) } } and Spell(flurry) or BuffPresent(fingers_of_frost_buff) and Spell(ice_lance) or Spell(ray_of_frost) or Spell(ebonbolt) or Spell(glacial_spike) or target.Distance() < 12 and Spell(cone_of_cold)
+  unless { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and frostessencescdpostconditions() or spell(comet_storm) or spell(ice_nova) or { previousgcdspell(ebonbolt) or buffpresent(brain_freeze_buff) and { previousgcdspell(frostbolt) and { buffstacks(icicles_buff) < 4 or not hastalent(glacial_spike_talent) } or previousgcdspell(glacial_spike) } } and { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(flurry) or buffpresent(fingers_of_frost_buff) and spell(ice_lance) or { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(ray_of_frost) or { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(ebonbolt) or { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(glacial_spike) or target.distance() < 12 and spell(cone_of_cold)
   {
    #use_item,name=tidestorm_codex,if=buff.icy_veins.down&buff.rune_of_power.down
-   if BuffExpires(icy_veins_buff) and BuffExpires(rune_of_power_buff) FrostUseItemActions()
+   if buffexpires(icy_veins_buff) and buffexpires(rune_of_power_buff) frostuseitemactions()
    #use_item,effect_name=cyclotronic_blast,if=buff.icy_veins.down&buff.rune_of_power.down
-   if BuffExpires(icy_veins_buff) and BuffExpires(rune_of_power_buff) FrostUseItemActions()
+   if buffexpires(icy_veins_buff) and buffexpires(rune_of_power_buff) frostuseitemactions()
 
-   unless Spell(frostbolt)
+   unless { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(frostbolt)
    {
     #call_action_list,name=movement
-    FrostMovementCdActions()
+    frostmovementcdactions()
    }
   }
  }
 }
 
-AddFunction FrostAoeCdPostConditions
+AddFunction frostaoecdpostconditions
 {
- Spell(frozen_orb) or Spell(blizzard) or FrostEssencesCdPostConditions() or Spell(comet_storm) or Spell(ice_nova) or { PreviousGCDSpell(ebonbolt) or BuffPresent(brain_freeze_buff) and { PreviousGCDSpell(frostbolt) and { BuffStacks(icicles_buff) < 4 or not Talent(glacial_spike_talent) } or PreviousGCDSpell(glacial_spike) } } and Spell(flurry) or BuffPresent(fingers_of_frost_buff) and Spell(ice_lance) or Spell(ray_of_frost) or Spell(ebonbolt) or Spell(glacial_spike) or target.Distance() < 12 and Spell(cone_of_cold) or Spell(frostbolt) or FrostMovementCdPostConditions() or Spell(ice_lance)
+ spell(frozen_orb) or mouseover.present() and mouseover.healthpercent() < 100 and not mouseover.isfriend() and { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(blizzard) or { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and frostessencescdpostconditions() or spell(comet_storm) or spell(ice_nova) or { previousgcdspell(ebonbolt) or buffpresent(brain_freeze_buff) and { previousgcdspell(frostbolt) and { buffstacks(icicles_buff) < 4 or not hastalent(glacial_spike_talent) } or previousgcdspell(glacial_spike) } } and { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(flurry) or buffpresent(fingers_of_frost_buff) and spell(ice_lance) or { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(ray_of_frost) or { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(ebonbolt) or { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(glacial_spike) or target.distance() < 12 and spell(cone_of_cold) or { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(frostbolt) or frostmovementcdpostconditions() or spell(ice_lance)
 }
 
 ### actions.cooldowns
 
-AddFunction FrostCooldownsMainActions
+AddFunction frostcooldownsmainactions
 {
  #call_action_list,name=talent_rop,if=talent.rune_of_power.enabled&active_enemies=1&cooldown.rune_of_power.full_recharge_time<cooldown.frozen_orb.remains
- if Talent(rune_of_power_talent) and Enemies(tagged=1) == 1 and SpellCooldown(rune_of_power) < SpellCooldown(frozen_orb) FrostTalentRopMainActions()
+ if hastalent(rune_of_power_talent) and enemies(tagged=1) == 1 and spellcooldown(rune_of_power) < spellcooldown(frozen_orb) ropmainactions()
 }
 
-AddFunction FrostCooldownsMainPostConditions
+AddFunction frostcooldownsmainpostconditions
 {
- Talent(rune_of_power_talent) and Enemies(tagged=1) == 1 and SpellCooldown(rune_of_power) < SpellCooldown(frozen_orb) and FrostTalentRopMainPostConditions()
+ hastalent(rune_of_power_talent) and enemies(tagged=1) == 1 and spellcooldown(rune_of_power) < spellcooldown(frozen_orb) and ropmainpostconditions()
 }
 
-AddFunction FrostCooldownsShortCdActions
+AddFunction frostcooldownsshortcdactions
 {
  #rune_of_power,if=prev_gcd.1.frozen_orb|target.time_to_die>10+cast_time&target.time_to_die<20
- if PreviousGCDSpell(frozen_orb) or target.TimeToDie() > 10 + CastTime(rune_of_power) and target.TimeToDie() < 20 Spell(rune_of_power)
+ if previousgcdspell(frozen_orb) or target.timetodie() > 10 + casttime(rune_of_power) and target.timetodie() < 20 spell(rune_of_power)
  #call_action_list,name=talent_rop,if=talent.rune_of_power.enabled&active_enemies=1&cooldown.rune_of_power.full_recharge_time<cooldown.frozen_orb.remains
- if Talent(rune_of_power_talent) and Enemies(tagged=1) == 1 and SpellCooldown(rune_of_power) < SpellCooldown(frozen_orb) FrostTalentRopShortCdActions()
+ if hastalent(rune_of_power_talent) and enemies(tagged=1) == 1 and spellcooldown(rune_of_power) < spellcooldown(frozen_orb) ropshortcdactions()
+
+ unless hastalent(rune_of_power_talent) and enemies(tagged=1) == 1 and spellcooldown(rune_of_power) < spellcooldown(frozen_orb) and ropshortcdpostconditions()
+ {
+  #bag_of_tricks
+  spell(bag_of_tricks)
+ }
 }
 
-AddFunction FrostCooldownsShortCdPostConditions
+AddFunction frostcooldownsshortcdpostconditions
 {
- Talent(rune_of_power_talent) and Enemies(tagged=1) == 1 and SpellCooldown(rune_of_power) < SpellCooldown(frozen_orb) and FrostTalentRopShortCdPostConditions()
+ hastalent(rune_of_power_talent) and enemies(tagged=1) == 1 and spellcooldown(rune_of_power) < spellcooldown(frozen_orb) and ropshortcdpostconditions()
 }
 
-AddFunction FrostCooldownsCdActions
+AddFunction frostcooldownscdactions
 {
  #guardian_of_azeroth
- Spell(guardian_of_azeroth)
+ spell(guardian_of_azeroth)
  #icy_veins
- Spell(icy_veins)
+ spell(icy_veins)
  #mirror_image
- Spell(mirror_image)
+ spell(mirror_image)
 
- unless { PreviousGCDSpell(frozen_orb) or target.TimeToDie() > 10 + CastTime(rune_of_power) and target.TimeToDie() < 20 } and Spell(rune_of_power)
+ unless { previousgcdspell(frozen_orb) or target.timetodie() > 10 + casttime(rune_of_power) and target.timetodie() < 20 } and spell(rune_of_power)
  {
   #call_action_list,name=talent_rop,if=talent.rune_of_power.enabled&active_enemies=1&cooldown.rune_of_power.full_recharge_time<cooldown.frozen_orb.remains
-  if Talent(rune_of_power_talent) and Enemies(tagged=1) == 1 and SpellCooldown(rune_of_power) < SpellCooldown(frozen_orb) FrostTalentRopCdActions()
+  if hastalent(rune_of_power_talent) and enemies(tagged=1) == 1 and spellcooldown(rune_of_power) < spellcooldown(frozen_orb) ropcdactions()
 
-  unless Talent(rune_of_power_talent) and Enemies(tagged=1) == 1 and SpellCooldown(rune_of_power) < SpellCooldown(frozen_orb) and FrostTalentRopCdPostConditions()
+  unless hastalent(rune_of_power_talent) and enemies(tagged=1) == 1 and spellcooldown(rune_of_power) < spellcooldown(frozen_orb) and ropcdpostconditions()
   {
-   #potion,if=prev_gcd.1.icy_veins|target.time_to_die<30
-   # if { PreviousGCDSpell(icy_veins) or target.TimeToDie() < 30 } and CheckBoxOn(opt_use_consumables) and target.Classification(worldboss) Item(item_potion_of_unbridled_fury usable=1)
    #use_item,name=balefire_branch,if=!talent.glacial_spike.enabled|buff.brain_freeze.react&prev_gcd.1.glacial_spike
-   if not Talent(glacial_spike_talent) or BuffPresent(brain_freeze_buff) and PreviousGCDSpell(glacial_spike) FrostUseItemActions()
+   if not hastalent(glacial_spike_talent) or buffpresent(brain_freeze_buff) and previousgcdspell(glacial_spike) frostuseitemactions()
    #use_items
-   FrostUseItemActions()
+   frostuseitemactions()
    #blood_fury
-   Spell(blood_fury_sp)
+   spell(blood_fury_sp)
    #berserking
-   Spell(berserking)
+   spell(berserking)
    #lights_judgment
-   Spell(lights_judgment)
+   spell(lights_judgment)
    #fireblood
-   Spell(fireblood)
+   spell(fireblood)
    #ancestral_call
-   Spell(ancestral_call)
+   spell(ancestral_call)
   }
  }
 }
 
-AddFunction FrostCooldownsCdPostConditions
+AddFunction frostcooldownscdpostconditions
 {
- { PreviousGCDSpell(frozen_orb) or target.TimeToDie() > 10 + CastTime(rune_of_power) and target.TimeToDie() < 20 } and Spell(rune_of_power) or Talent(rune_of_power_talent) and Enemies(tagged=1) == 1 and SpellCooldown(rune_of_power) < SpellCooldown(frozen_orb) and FrostTalentRopCdPostConditions()
+ { previousgcdspell(frozen_orb) or target.timetodie() > 10 + casttime(rune_of_power) and target.timetodie() < 20 } and spell(rune_of_power) or hastalent(rune_of_power_talent) and enemies(tagged=1) == 1 and spellcooldown(rune_of_power) < spellcooldown(frozen_orb) and ropcdpostconditions() or spell(bag_of_tricks)
 }
 
 ### actions.essences
 
-AddFunction FrostEssencesMainActions
+AddFunction frostessencesmainactions
 {
  #concentrated_flame,line_cd=6,if=buff.rune_of_power.down
- if BuffExpires(rune_of_power_buff) and TimeSincePreviousSpell(concentrated_flame_essence) > 6 Spell(concentrated_flame_essence)
+ if buffexpires(rune_of_power_buff) and timesincepreviousspell(concentrated_flame_essence) > 6 spell(concentrated_flame_essence)
 }
 
-AddFunction FrostEssencesMainPostConditions
+AddFunction frostessencesmainpostconditions
 {
 }
 
-AddFunction FrostEssencesShortCdActions
+AddFunction frostessencesshortcdactions
+{
+ #blood_of_the_enemy,if=(talent.glacial_spike.enabled&buff.icicles.stack=5&(buff.brain_freeze.react|prev_gcd.1.ebonbolt))|((active_enemies>3|!talent.glacial_spike.enabled)&(prev_gcd.1.frozen_orb|ground_aoe.frozen_orb.remains>5))
+ if hastalent(glacial_spike_talent) and buffstacks(icicles_buff) == 5 and { buffpresent(brain_freeze_buff) or previousgcdspell(ebonbolt) } or { enemies(tagged=1) > 3 or not hastalent(glacial_spike_talent) } and { previousgcdspell(frozen_orb) or target.debuffremaining(frozen_orb_debuff) > 5 } spell(blood_of_the_enemy)
+ #purifying_blast,if=buff.rune_of_power.down|active_enemies>3
+ if buffexpires(rune_of_power_buff) or enemies(tagged=1) > 3 spell(purifying_blast)
+ #ripple_in_space,if=buff.rune_of_power.down|active_enemies>3
+ if buffexpires(rune_of_power_buff) or enemies(tagged=1) > 3 spell(ripple_in_space_essence)
+
+ unless buffexpires(rune_of_power_buff) and timesincepreviousspell(concentrated_flame_essence) > 6 and spell(concentrated_flame_essence)
+ {
+  #reaping_flames,if=buff.rune_of_power.down
+  if buffexpires(rune_of_power_buff) spell(reaping_flames_essence)
+  #the_unbound_force,if=buff.reckless_force.up
+  if buffpresent(reckless_force_buff) spell(the_unbound_force)
+  #worldvein_resonance,if=buff.rune_of_power.down|active_enemies>3
+  if buffexpires(rune_of_power_buff) or enemies(tagged=1) > 3 spell(worldvein_resonance_essence)
+ }
+}
+
+AddFunction frostessencesshortcdpostconditions
+{
+ buffexpires(rune_of_power_buff) and timesincepreviousspell(concentrated_flame_essence) > 6 and spell(concentrated_flame_essence)
+}
+
+AddFunction frostessencescdactions
 {
  #focused_azerite_beam,if=buff.rune_of_power.down|active_enemies>3
- if BuffExpires(rune_of_power_buff) or Enemies(tagged=1) > 3 Spell(focused_azerite_beam)
- #blood_of_the_enemy,if=(talent.glacial_spike.enabled&buff.icicles.stack=5&(buff.brain_freeze.react|prev_gcd.1.ebonbolt))|((active_enemies>3|!talent.glacial_spike.enabled)&(prev_gcd.1.frozen_orb|ground_aoe.frozen_orb.remains>5))
- if Talent(glacial_spike_talent) and BuffStacks(icicles_buff) == 5 and { BuffPresent(brain_freeze_buff) or PreviousGCDSpell(ebonbolt) } or { Enemies(tagged=1) > 3 or not Talent(glacial_spike_talent) } and { PreviousGCDSpell(frozen_orb) or target.DebuffRemaining(frozen_orb_debuff) > 5 } Spell(blood_of_the_enemy)
- #purifying_blast,if=buff.rune_of_power.down|active_enemies>3
- if BuffExpires(rune_of_power_buff) or Enemies(tagged=1) > 3 Spell(purifying_blast)
- #ripple_in_space,if=buff.rune_of_power.down|active_enemies>3
- if BuffExpires(rune_of_power_buff) or Enemies(tagged=1) > 3 Spell(ripple_in_space_essence)
-
- unless BuffExpires(rune_of_power_buff) and TimeSincePreviousSpell(concentrated_flame_essence) > 6 and Spell(concentrated_flame_essence)
- {
-  #the_unbound_force,if=buff.reckless_force.up
-  if BuffPresent(reckless_force_buff) Spell(the_unbound_force)
-  #worldvein_resonance,if=buff.rune_of_power.down|active_enemies>3
-  if BuffExpires(rune_of_power_buff) or Enemies(tagged=1) > 3 Spell(worldvein_resonance_essence)
- }
+ if buffexpires(rune_of_power_buff) or enemies(tagged=1) > 3 spell(focused_azerite_beam)
+ #memory_of_lucid_dreams,if=active_enemies<5&(buff.icicles.stack<=1|!talent.glacial_spike.enabled)&cooldown.frozen_orb.remains>10
+ if enemies(tagged=1) < 5 and { buffstacks(icicles_buff) <= 1 or not hastalent(glacial_spike_talent) } and spellcooldown(frozen_orb) > 10 spell(memory_of_lucid_dreams_essence)
 }
 
-AddFunction FrostEssencesShortCdPostConditions
+AddFunction frostessencescdpostconditions
 {
- BuffExpires(rune_of_power_buff) and TimeSincePreviousSpell(concentrated_flame_essence) > 6 and Spell(concentrated_flame_essence)
-}
-
-AddFunction FrostEssencesCdActions
-{
- unless { BuffExpires(rune_of_power_buff) or Enemies(tagged=1) > 3 } and Spell(focused_azerite_beam)
- {
-  #memory_of_lucid_dreams,if=active_enemies<5&(buff.icicles.stack<=1|!talent.glacial_spike.enabled)&cooldown.frozen_orb.remains>10
-  if Enemies(tagged=1) < 5 and { BuffStacks(icicles_buff) <= 1 or not Talent(glacial_spike_talent) } and SpellCooldown(frozen_orb) > 10 Spell(memory_of_lucid_dreams_essence)
- }
-}
-
-AddFunction FrostEssencesCdPostConditions
-{
- { BuffExpires(rune_of_power_buff) or Enemies(tagged=1) > 3 } and Spell(focused_azerite_beam) or { BuffExpires(rune_of_power_buff) or Enemies(tagged=1) > 3 } and Spell(purifying_blast) or { BuffExpires(rune_of_power_buff) or Enemies(tagged=1) > 3 } and Spell(ripple_in_space_essence) or BuffExpires(rune_of_power_buff) and TimeSincePreviousSpell(concentrated_flame_essence) > 6 and Spell(concentrated_flame_essence) or BuffPresent(reckless_force_buff) and Spell(the_unbound_force) or { BuffExpires(rune_of_power_buff) or Enemies(tagged=1) > 3 } and Spell(worldvein_resonance_essence)
+ { buffexpires(rune_of_power_buff) or enemies(tagged=1) > 3 } and spell(purifying_blast) or { buffexpires(rune_of_power_buff) or enemies(tagged=1) > 3 } and spell(ripple_in_space_essence) or buffexpires(rune_of_power_buff) and timesincepreviousspell(concentrated_flame_essence) > 6 and spell(concentrated_flame_essence) or buffexpires(rune_of_power_buff) and spell(reaping_flames_essence) or buffpresent(reckless_force_buff) and spell(the_unbound_force) or { buffexpires(rune_of_power_buff) or enemies(tagged=1) > 3 } and spell(worldvein_resonance_essence)
 }
 
 ### actions.movement
 
-AddFunction FrostMovementMainActions
+AddFunction frostmovementmainactions
 {
 }
 
-AddFunction FrostMovementMainPostConditions
+AddFunction frostmovementmainpostconditions
 {
 }
 
-AddFunction FrostMovementShortCdActions
+AddFunction frostmovementshortcdactions
 {
- #blink_any,if=movement.distance>10
- # if target.Distance() > 10 and CheckBoxOn(opt_blink) Spell(blink)
  #ice_floes,if=buff.ice_floes.down
- if BuffExpires(ice_floes_buff) and Speed() > 0 Spell(ice_floes)
+ if buffexpires(ice_floes_buff) and speed() > 0 spell(ice_floes)
 }
 
-AddFunction FrostMovementShortCdPostConditions
+AddFunction frostmovementshortcdpostconditions
 {
 }
 
-AddFunction FrostMovementCdActions
+AddFunction frostmovementcdactions
 {
 }
 
-AddFunction FrostMovementCdPostConditions
+AddFunction frostmovementcdpostconditions
 {
- # target.Distance() > 10 and CheckBoxOn(opt_blink) and Spell(blink)
+ buffexpires(ice_floes_buff) and speed() > 0 and spell(ice_floes)
 }
 
 ### actions.precombat
 
-AddFunction FrostPrecombatMainActions
+AddFunction frostprecombatmainactions
 {
  #flask
  #food
  #augmentation
  #arcane_intellect
- Spell(arcane_intellect)
+ spell(arcane_intellect)
  #frostbolt
- Spell(frostbolt)
+ spell(frostbolt)
 }
 
-AddFunction FrostPrecombatMainPostConditions
+AddFunction frostprecombatmainpostconditions
 {
 }
 
-AddFunction FrostPrecombatShortCdActions
+AddFunction frostprecombatshortcdactions
 {
- unless Spell(arcane_intellect)
+ unless spell(arcane_intellect)
  {
   #summon_water_elemental
-  if not pet.Present() Spell(summon_water_elemental)
+  if not pet.present() spell(summon_water_elemental)
  }
 }
 
-AddFunction FrostPrecombatShortCdPostConditions
+AddFunction frostprecombatshortcdpostconditions
 {
- Spell(arcane_intellect) or Spell(frostbolt)
+ spell(arcane_intellect) or spell(frostbolt)
 }
 
-AddFunction FrostPrecombatCdActions
+AddFunction frostprecombatcdactions
 {
- unless Spell(arcane_intellect) or not pet.Present() and Spell(summon_water_elemental)
+ unless spell(arcane_intellect) or not pet.present() and spell(summon_water_elemental)
  {
   #snapshot_stats
-  #use_item,name=azsharas_font_of_power
-  FrostUseItemActions()
   #mirror_image
-  Spell(mirror_image)
-  #potion
-  # if CheckBoxOn(opt_use_consumables) and target.Classification(worldboss) Item(item_potion_of_unbridled_fury usable=1)
+  spell(mirror_image)
  }
 }
 
-AddFunction FrostPrecombatCdPostConditions
+AddFunction frostprecombatcdpostconditions
 {
- Spell(arcane_intellect) or not pet.Present() and Spell(summon_water_elemental) or Spell(frostbolt)
+ spell(arcane_intellect) or not pet.present() and spell(summon_water_elemental) or spell(frostbolt)
 }
 
 ### actions.single
 
-AddFunction FrostSingleMainActions
+AddFunction frostsinglemainactions
 {
  #ice_nova,if=cooldown.ice_nova.ready&debuff.winters_chill.up
- if SpellCooldown(ice_nova) == 0 and target.DebuffPresent(winters_chill_debuff) Spell(ice_nova)
+ if spellcooldown(ice_nova) == 0 and target.debuffpresent(winters_chill_debuff) spell(ice_nova)
  #flurry,if=talent.ebonbolt.enabled&prev_gcd.1.ebonbolt&buff.brain_freeze.react
- if Talent(ebonbolt_talent) and PreviousGCDSpell(ebonbolt) and BuffPresent(brain_freeze_buff) Spell(flurry)
+ if hastalent(ebonbolt_talent) and previousgcdspell(ebonbolt) and buffpresent(brain_freeze_buff) spell(flurry)
  #flurry,if=prev_gcd.1.glacial_spike&buff.brain_freeze.react
- if PreviousGCDSpell(glacial_spike) and BuffPresent(brain_freeze_buff) Spell(flurry)
- #call_action_list,name=essences
- FrostEssencesMainActions()
+ if previousgcdspell(glacial_spike) and buffpresent(brain_freeze_buff) spell(flurry)
+ #call_action_list,name=essences,if=ovale.boss&ovale.movement
+ if { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and { speed() == 0 or buffpresent(movement_allowed_buff) } frostessencesmainactions()
 
- unless FrostEssencesMainPostConditions()
+ unless { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and { speed() == 0 or buffpresent(movement_allowed_buff) } and frostessencesmainpostconditions()
  {
-  #blizzard,if=active_enemies>2|active_enemies>1&!talent.splitting_ice.enabled
-  if Enemies(tagged=1) > 2 or Enemies(tagged=1) > 1 and not Talent(splitting_ice_talent) Spell(blizzard)
-  #ebonbolt,if=buff.icicles.stack=5&!buff.brain_freeze.react
-  if BuffStacks(icicles_buff) == 5 and not BuffPresent(brain_freeze_buff) Spell(ebonbolt)
-  #glacial_spike,if=buff.brain_freeze.react|prev_gcd.1.ebonbolt|talent.incanters_flow.enabled&cast_time+travel_time>incanters_flow_time_to.5.up&cast_time+travel_time<incanters_flow_time_to.4.down
-  if BuffPresent(brain_freeze_buff) or PreviousGCDSpell(ebonbolt) or Talent(incanters_flow_talent) and CastTime(glacial_spike) + TravelTime(glacial_spike) > StackTimeTo(incanters_flow_buff 5 up) and CastTime(glacial_spike) + TravelTime(glacial_spike) < StackTimeTo(incanters_flow_buff 4 down) Spell(glacial_spike)
+  #blizzard,if=(active_enemies>2|active_enemies>1&!talent.splitting_ice.enabled)&ovale.mouseover&ovale.movement
+  if { enemies(tagged=1) > 2 or enemies(tagged=1) > 1 and not hastalent(splitting_ice_talent) } and mouseover.present() and mouseover.healthpercent() < 100 and not mouseover.isfriend() and { speed() == 0 or buffpresent(movement_allowed_buff) } spell(blizzard)
+  #ebonbolt,if=(buff.icicles.stack=5&!buff.brain_freeze.react)&ovale.movement
+  if buffstacks(icicles_buff) == 5 and not buffpresent(brain_freeze_buff) and { speed() == 0 or buffpresent(movement_allowed_buff) } spell(ebonbolt)
+  #ice_lance,if=buff.brain_freeze.react&(buff.fingers_of_frost.react|prev_gcd.1.flurry)&(buff.icicles.max_stack-buff.icicles.stack)*action.frostbolt.execute_time+action.glacial_spike.cast_time+action.glacial_spike.travel_time<incanters_flow_time_to.5.any&buff.memory_of_lucid_dreams.down
+  if buffpresent(brain_freeze_buff) and { buffpresent(fingers_of_frost_buff) or previousgcdspell(flurry) } and { spelldata(icicles_buff max_stacks) - buffstacks(icicles_buff) } * executetime(frostbolt) + casttime(glacial_spike) + traveltime(glacial_spike) < stacktimeto(incanters_flow_buff 5 any) and buffexpires(memory_of_lucid_dreams_essence_buff) spell(ice_lance)
+  #glacial_spike,if=(buff.brain_freeze.react|prev_gcd.1.ebonbolt|talent.incanters_flow.enabled&cast_time+travel_time>incanters_flow_time_to.5.up&cast_time+travel_time<incanters_flow_time_to.4.down)&ovale.movement
+  if { buffpresent(brain_freeze_buff) or previousgcdspell(ebonbolt) or hastalent(incanters_flow_talent) and casttime(glacial_spike) + traveltime(glacial_spike) > stacktimeto(incanters_flow_buff 5 up) and casttime(glacial_spike) + traveltime(glacial_spike) < stacktimeto(incanters_flow_buff 4 down) } and { speed() == 0 or buffpresent(movement_allowed_buff) } spell(glacial_spike)
   #ice_nova
-  Spell(ice_nova)
-  #frostbolt
-  Spell(frostbolt)
+  spell(ice_nova)
+  #frostbolt,if=ovale.movement
+  if speed() == 0 or buffpresent(movement_allowed_buff) spell(frostbolt)
   #call_action_list,name=movement
-  FrostMovementMainActions()
+  frostmovementmainactions()
 
-  unless FrostMovementMainPostConditions()
+  unless frostmovementmainpostconditions()
   {
    #ice_lance
-   Spell(ice_lance)
+   spell(ice_lance)
   }
  }
 }
 
-AddFunction FrostSingleMainPostConditions
+AddFunction frostsinglemainpostconditions
 {
- FrostEssencesMainPostConditions() or FrostMovementMainPostConditions()
+ { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and { speed() == 0 or buffpresent(movement_allowed_buff) } and frostessencesmainpostconditions() or frostmovementmainpostconditions()
 }
 
-AddFunction FrostSingleShortCdActions
+AddFunction frostsingleshortcdactions
 {
- unless SpellCooldown(ice_nova) == 0 and target.DebuffPresent(winters_chill_debuff) and Spell(ice_nova) or Talent(ebonbolt_talent) and PreviousGCDSpell(ebonbolt) and BuffPresent(brain_freeze_buff) and Spell(flurry) or PreviousGCDSpell(glacial_spike) and BuffPresent(brain_freeze_buff) and Spell(flurry)
+ unless spellcooldown(ice_nova) == 0 and target.debuffpresent(winters_chill_debuff) and spell(ice_nova) or hastalent(ebonbolt_talent) and previousgcdspell(ebonbolt) and buffpresent(brain_freeze_buff) and spell(flurry) or previousgcdspell(glacial_spike) and buffpresent(brain_freeze_buff) and spell(flurry)
  {
-  #call_action_list,name=essences
-  FrostEssencesShortCdActions()
+  #call_action_list,name=essences,if=ovale.boss&ovale.movement
+  if { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and { speed() == 0 or buffpresent(movement_allowed_buff) } frostessencesshortcdactions()
 
-  unless FrostEssencesShortCdPostConditions()
+  unless { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and { speed() == 0 or buffpresent(movement_allowed_buff) } and frostessencesshortcdpostconditions()
   {
    #frozen_orb
-   Spell(frozen_orb)
+   spell(frozen_orb)
 
-   unless { Enemies(tagged=1) > 2 or Enemies(tagged=1) > 1 and not Talent(splitting_ice_talent) } and Spell(blizzard)
+   unless { enemies(tagged=1) > 2 or enemies(tagged=1) > 1 and not hastalent(splitting_ice_talent) } and mouseover.present() and mouseover.healthpercent() < 100 and not mouseover.isfriend() and { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(blizzard)
    {
     #comet_storm
-    Spell(comet_storm)
+    spell(comet_storm)
 
-    unless BuffStacks(icicles_buff) == 5 and not BuffPresent(brain_freeze_buff) and Spell(ebonbolt) or { BuffPresent(brain_freeze_buff) or PreviousGCDSpell(ebonbolt) or Talent(incanters_flow_talent) and CastTime(glacial_spike) + TravelTime(glacial_spike) > StackTimeTo(incanters_flow_buff 5 up) and CastTime(glacial_spike) + TravelTime(glacial_spike) < StackTimeTo(incanters_flow_buff 4 down) } and Spell(glacial_spike) or Spell(ice_nova) or Spell(frostbolt)
+    unless buffstacks(icicles_buff) == 5 and not buffpresent(brain_freeze_buff) and { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(ebonbolt) or buffpresent(brain_freeze_buff) and { buffpresent(fingers_of_frost_buff) or previousgcdspell(flurry) } and { spelldata(icicles_buff max_stacks) - buffstacks(icicles_buff) } * executetime(frostbolt) + casttime(glacial_spike) + traveltime(glacial_spike) < stacktimeto(incanters_flow_buff 5 any) and buffexpires(memory_of_lucid_dreams_essence_buff) and spell(ice_lance) or { buffpresent(brain_freeze_buff) or previousgcdspell(ebonbolt) or hastalent(incanters_flow_talent) and casttime(glacial_spike) + traveltime(glacial_spike) > stacktimeto(incanters_flow_buff 5 up) and casttime(glacial_spike) + traveltime(glacial_spike) < stacktimeto(incanters_flow_buff 4 down) } and { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(glacial_spike) or spell(ice_nova) or { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(frostbolt)
     {
      #call_action_list,name=movement
-     FrostMovementShortCdActions()
+     frostmovementshortcdactions()
     }
    }
   }
  }
 }
 
-AddFunction FrostSingleShortCdPostConditions
+AddFunction frostsingleshortcdpostconditions
 {
- SpellCooldown(ice_nova) == 0 and target.DebuffPresent(winters_chill_debuff) and Spell(ice_nova) or Talent(ebonbolt_talent) and PreviousGCDSpell(ebonbolt) and BuffPresent(brain_freeze_buff) and Spell(flurry) or PreviousGCDSpell(glacial_spike) and BuffPresent(brain_freeze_buff) and Spell(flurry) or FrostEssencesShortCdPostConditions() or { Enemies(tagged=1) > 2 or Enemies(tagged=1) > 1 and not Talent(splitting_ice_talent) } and Spell(blizzard) or BuffStacks(icicles_buff) == 5 and not BuffPresent(brain_freeze_buff) and Spell(ebonbolt) or { BuffPresent(brain_freeze_buff) or PreviousGCDSpell(ebonbolt) or Talent(incanters_flow_talent) and CastTime(glacial_spike) + TravelTime(glacial_spike) > StackTimeTo(incanters_flow_buff 5 up) and CastTime(glacial_spike) + TravelTime(glacial_spike) < StackTimeTo(incanters_flow_buff 4 down) } and Spell(glacial_spike) or Spell(ice_nova) or Spell(frostbolt) or FrostMovementShortCdPostConditions() or Spell(ice_lance)
+ spellcooldown(ice_nova) == 0 and target.debuffpresent(winters_chill_debuff) and spell(ice_nova) or hastalent(ebonbolt_talent) and previousgcdspell(ebonbolt) and buffpresent(brain_freeze_buff) and spell(flurry) or previousgcdspell(glacial_spike) and buffpresent(brain_freeze_buff) and spell(flurry) or { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and { speed() == 0 or buffpresent(movement_allowed_buff) } and frostessencesshortcdpostconditions() or { enemies(tagged=1) > 2 or enemies(tagged=1) > 1 and not hastalent(splitting_ice_talent) } and mouseover.present() and mouseover.healthpercent() < 100 and not mouseover.isfriend() and { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(blizzard) or buffstacks(icicles_buff) == 5 and not buffpresent(brain_freeze_buff) and { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(ebonbolt) or buffpresent(brain_freeze_buff) and { buffpresent(fingers_of_frost_buff) or previousgcdspell(flurry) } and { spelldata(icicles_buff max_stacks) - buffstacks(icicles_buff) } * executetime(frostbolt) + casttime(glacial_spike) + traveltime(glacial_spike) < stacktimeto(incanters_flow_buff 5 any) and buffexpires(memory_of_lucid_dreams_essence_buff) and spell(ice_lance) or { buffpresent(brain_freeze_buff) or previousgcdspell(ebonbolt) or hastalent(incanters_flow_talent) and casttime(glacial_spike) + traveltime(glacial_spike) > stacktimeto(incanters_flow_buff 5 up) and casttime(glacial_spike) + traveltime(glacial_spike) < stacktimeto(incanters_flow_buff 4 down) } and { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(glacial_spike) or spell(ice_nova) or { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(frostbolt) or frostmovementshortcdpostconditions() or spell(ice_lance)
 }
 
-AddFunction FrostSingleCdActions
+AddFunction frostsinglecdactions
 {
- unless SpellCooldown(ice_nova) == 0 and target.DebuffPresent(winters_chill_debuff) and Spell(ice_nova) or Talent(ebonbolt_talent) and PreviousGCDSpell(ebonbolt) and BuffPresent(brain_freeze_buff) and Spell(flurry) or PreviousGCDSpell(glacial_spike) and BuffPresent(brain_freeze_buff) and Spell(flurry)
+ unless spellcooldown(ice_nova) == 0 and target.debuffpresent(winters_chill_debuff) and spell(ice_nova) or hastalent(ebonbolt_talent) and previousgcdspell(ebonbolt) and buffpresent(brain_freeze_buff) and spell(flurry) or previousgcdspell(glacial_spike) and buffpresent(brain_freeze_buff) and spell(flurry)
  {
-  #call_action_list,name=essences
-  FrostEssencesCdActions()
+  #call_action_list,name=essences,if=ovale.boss&ovale.movement
+  if { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and { speed() == 0 or buffpresent(movement_allowed_buff) } frostessencescdactions()
 
-  unless FrostEssencesCdPostConditions() or Spell(frozen_orb) or { Enemies(tagged=1) > 2 or Enemies(tagged=1) > 1 and not Talent(splitting_ice_talent) } and Spell(blizzard) or Spell(comet_storm) or BuffStacks(icicles_buff) == 5 and not BuffPresent(brain_freeze_buff) and Spell(ebonbolt) or { BuffPresent(brain_freeze_buff) or PreviousGCDSpell(ebonbolt) or Talent(incanters_flow_talent) and CastTime(glacial_spike) + TravelTime(glacial_spike) > StackTimeTo(incanters_flow_buff 5 up) and CastTime(glacial_spike) + TravelTime(glacial_spike) < StackTimeTo(incanters_flow_buff 4 down) } and Spell(glacial_spike) or Spell(ice_nova)
+  unless { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and { speed() == 0 or buffpresent(movement_allowed_buff) } and frostessencescdpostconditions() or spell(frozen_orb) or { enemies(tagged=1) > 2 or enemies(tagged=1) > 1 and not hastalent(splitting_ice_talent) } and mouseover.present() and mouseover.healthpercent() < 100 and not mouseover.isfriend() and { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(blizzard) or spell(comet_storm) or buffstacks(icicles_buff) == 5 and not buffpresent(brain_freeze_buff) and { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(ebonbolt) or buffpresent(brain_freeze_buff) and { buffpresent(fingers_of_frost_buff) or previousgcdspell(flurry) } and { spelldata(icicles_buff max_stacks) - buffstacks(icicles_buff) } * executetime(frostbolt) + casttime(glacial_spike) + traveltime(glacial_spike) < stacktimeto(incanters_flow_buff 5 any) and buffexpires(memory_of_lucid_dreams_essence_buff) and spell(ice_lance) or { buffpresent(brain_freeze_buff) or previousgcdspell(ebonbolt) or hastalent(incanters_flow_talent) and casttime(glacial_spike) + traveltime(glacial_spike) > stacktimeto(incanters_flow_buff 5 up) and casttime(glacial_spike) + traveltime(glacial_spike) < stacktimeto(incanters_flow_buff 4 down) } and { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(glacial_spike) or spell(ice_nova)
   {
    #use_item,name=tidestorm_codex,if=buff.icy_veins.down&buff.rune_of_power.down
-   if BuffExpires(icy_veins_buff) and BuffExpires(rune_of_power_buff) FrostUseItemActions()
+   if buffexpires(icy_veins_buff) and buffexpires(rune_of_power_buff) frostuseitemactions()
    #use_item,effect_name=cyclotronic_blast,if=buff.icy_veins.down&buff.rune_of_power.down
-   if BuffExpires(icy_veins_buff) and BuffExpires(rune_of_power_buff) FrostUseItemActions()
+   if buffexpires(icy_veins_buff) and buffexpires(rune_of_power_buff) frostuseitemactions()
 
-   unless Spell(frostbolt)
+   unless { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(frostbolt)
    {
     #call_action_list,name=movement
-    FrostMovementCdActions()
+    frostmovementcdactions()
    }
   }
  }
 }
 
-AddFunction FrostSingleCdPostConditions
+AddFunction frostsinglecdpostconditions
 {
- SpellCooldown(ice_nova) == 0 and target.DebuffPresent(winters_chill_debuff) and Spell(ice_nova) or Talent(ebonbolt_talent) and PreviousGCDSpell(ebonbolt) and BuffPresent(brain_freeze_buff) and Spell(flurry) or PreviousGCDSpell(glacial_spike) and BuffPresent(brain_freeze_buff) and Spell(flurry) or FrostEssencesCdPostConditions() or Spell(frozen_orb) or { Enemies(tagged=1) > 2 or Enemies(tagged=1) > 1 and not Talent(splitting_ice_talent) } and Spell(blizzard) or Spell(comet_storm) or BuffStacks(icicles_buff) == 5 and not BuffPresent(brain_freeze_buff) and Spell(ebonbolt) or { BuffPresent(brain_freeze_buff) or PreviousGCDSpell(ebonbolt) or Talent(incanters_flow_talent) and CastTime(glacial_spike) + TravelTime(glacial_spike) > StackTimeTo(incanters_flow_buff 5 up) and CastTime(glacial_spike) + TravelTime(glacial_spike) < StackTimeTo(incanters_flow_buff 4 down) } and Spell(glacial_spike) or Spell(ice_nova) or Spell(frostbolt) or FrostMovementCdPostConditions() or Spell(ice_lance)
+ spellcooldown(ice_nova) == 0 and target.debuffpresent(winters_chill_debuff) and spell(ice_nova) or hastalent(ebonbolt_talent) and previousgcdspell(ebonbolt) and buffpresent(brain_freeze_buff) and spell(flurry) or previousgcdspell(glacial_spike) and buffpresent(brain_freeze_buff) and spell(flurry) or { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and { speed() == 0 or buffpresent(movement_allowed_buff) } and frostessencescdpostconditions() or spell(frozen_orb) or { enemies(tagged=1) > 2 or enemies(tagged=1) > 1 and not hastalent(splitting_ice_talent) } and mouseover.present() and mouseover.healthpercent() < 100 and not mouseover.isfriend() and { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(blizzard) or spell(comet_storm) or buffstacks(icicles_buff) == 5 and not buffpresent(brain_freeze_buff) and { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(ebonbolt) or buffpresent(brain_freeze_buff) and { buffpresent(fingers_of_frost_buff) or previousgcdspell(flurry) } and { spelldata(icicles_buff max_stacks) - buffstacks(icicles_buff) } * executetime(frostbolt) + casttime(glacial_spike) + traveltime(glacial_spike) < stacktimeto(incanters_flow_buff 5 any) and buffexpires(memory_of_lucid_dreams_essence_buff) and spell(ice_lance) or { buffpresent(brain_freeze_buff) or previousgcdspell(ebonbolt) or hastalent(incanters_flow_talent) and casttime(glacial_spike) + traveltime(glacial_spike) > stacktimeto(incanters_flow_buff 5 up) and casttime(glacial_spike) + traveltime(glacial_spike) < stacktimeto(incanters_flow_buff 4 down) } and { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(glacial_spike) or spell(ice_nova) or { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(frostbolt) or frostmovementcdpostconditions() or spell(ice_lance)
 }
 
 ### actions.talent_rop
 
-AddFunction FrostTalentRopMainActions
+AddFunction ropmainactions
 {
 }
 
-AddFunction FrostTalentRopMainPostConditions
+AddFunction ropmainpostconditions
 {
 }
 
-AddFunction FrostTalentRopShortCdActions
+AddFunction ropshortcdactions
 {
- #rune_of_power,if=talent.glacial_spike.enabled&buff.icicles.stack=5&(buff.brain_freeze.react|talent.ebonbolt.enabled&cooldown.ebonbolt.remains<cast_time)
- if Talent(glacial_spike_talent) and BuffStacks(icicles_buff) == 5 and { BuffPresent(brain_freeze_buff) or Talent(ebonbolt_talent) and SpellCooldown(ebonbolt) < CastTime(rune_of_power) } Spell(rune_of_power)
- #rune_of_power,if=!talent.glacial_spike.enabled&(talent.ebonbolt.enabled&cooldown.ebonbolt.remains<cast_time|talent.comet_storm.enabled&cooldown.comet_storm.remains<cast_time|talent.ray_of_frost.enabled&cooldown.ray_of_frost.remains<cast_time|charges_fractional>1.9)
- if not Talent(glacial_spike_talent) and { Talent(ebonbolt_talent) and SpellCooldown(ebonbolt) < CastTime(rune_of_power) or Talent(comet_storm_talent) and SpellCooldown(comet_storm) < CastTime(rune_of_power) or Talent(ray_of_frost_talent) and SpellCooldown(ray_of_frost) < CastTime(rune_of_power) or Charges(rune_of_power count=0) > 1.9 } Spell(rune_of_power)
+ #rune_of_power,if=talent.glacial_spike.enabled&buff.icicles.stack=5&(buff.brain_freeze.react|talent.ebonbolt.enabled&cooldown.ebonbolt.remains<cast_time)&ovale.movement
+ if hastalent(glacial_spike_talent) and buffstacks(icicles_buff) == 5 and { buffpresent(brain_freeze_buff) or hastalent(ebonbolt_talent) and spellcooldown(ebonbolt) < casttime(rune_of_power) } and { speed() == 0 or buffpresent(movement_allowed_buff) } spell(rune_of_power)
+ #rune_of_power,if=!talent.glacial_spike.enabled&(talent.ebonbolt.enabled&cooldown.ebonbolt.remains<cast_time|talent.comet_storm.enabled&cooldown.comet_storm.remains<cast_time|talent.ray_of_frost.enabled&cooldown.ray_of_frost.remains<cast_time|charges_fractional>1.9)&ovale.movement
+ if not hastalent(glacial_spike_talent) and { hastalent(ebonbolt_talent) and spellcooldown(ebonbolt) < casttime(rune_of_power) or hastalent(comet_storm_talent) and spellcooldown(comet_storm) < casttime(rune_of_power) or hastalent(ray_of_frost_talent) and spellcooldown(ray_of_frost) < casttime(rune_of_power) or charges(rune_of_power count=0) > 1.9 } and { speed() == 0 or buffpresent(movement_allowed_buff) } spell(rune_of_power)
 }
 
-AddFunction FrostTalentRopShortCdPostConditions
-{
-}
-
-AddFunction FrostTalentRopCdActions
+AddFunction ropshortcdpostconditions
 {
 }
 
-AddFunction FrostTalentRopCdPostConditions
+AddFunction ropcdactions
 {
- Talent(glacial_spike_talent) and BuffStacks(icicles_buff) == 5 and { BuffPresent(brain_freeze_buff) or Talent(ebonbolt_talent) and SpellCooldown(ebonbolt) < CastTime(rune_of_power) } and Spell(rune_of_power) or not Talent(glacial_spike_talent) and { Talent(ebonbolt_talent) and SpellCooldown(ebonbolt) < CastTime(rune_of_power) or Talent(comet_storm_talent) and SpellCooldown(comet_storm) < CastTime(rune_of_power) or Talent(ray_of_frost_talent) and SpellCooldown(ray_of_frost) < CastTime(rune_of_power) or Charges(rune_of_power count=0) > 1.9 } and Spell(rune_of_power)
+}
+
+AddFunction ropcdpostconditions
+{
+ hastalent(glacial_spike_talent) and buffstacks(icicles_buff) == 5 and { buffpresent(brain_freeze_buff) or hastalent(ebonbolt_talent) and spellcooldown(ebonbolt) < casttime(rune_of_power) } and { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(rune_of_power) or not hastalent(glacial_spike_talent) and { hastalent(ebonbolt_talent) and spellcooldown(ebonbolt) < casttime(rune_of_power) or hastalent(comet_storm_talent) and spellcooldown(comet_storm) < casttime(rune_of_power) or hastalent(ray_of_frost_talent) and spellcooldown(ray_of_frost) < casttime(rune_of_power) or charges(rune_of_power count=0) > 1.9 } and { speed() == 0 or buffpresent(movement_allowed_buff) } and spell(rune_of_power)
 }
 ]]
 

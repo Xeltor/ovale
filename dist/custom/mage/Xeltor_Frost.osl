@@ -27,7 +27,7 @@ AddIcon specialization=3 help=main
 
 	if InCombat() and not target.DebuffPresent(crowd_control_debuff) and target.InRange(frostbolt) and HasFullControl()
 	{
-		if BuffExpires(ice_floes_buff) and not { Speed() == 0 or BuffPresent(movement_allowed_buff) } Spell(ice_floes)
+		if not BuffPresent(ice_floes_buff) and not { Speed() == 0 or BuffPresent(movement_allowed_buff) } Spell(ice_floes)
 
 		# Cooldowns
 		defaultcdactions()
@@ -370,7 +370,7 @@ AddFunction frostmovementmainpostconditions
 AddFunction frostmovementshortcdactions
 {
  #ice_floes,if=buff.ice_floes.down
- if buffexpires(ice_floes_buff) and speed() > 0 spell(ice_floes)
+ if not buffpresent(ice_floes_buff) and speed() > 0 spell(ice_floes)
 }
 
 AddFunction frostmovementshortcdpostconditions
@@ -442,6 +442,8 @@ AddFunction frostsinglemainactions
  if hastalent(ebonbolt_talent) and previousgcdspell(ebonbolt) and buffpresent(brain_freeze_buff) spell(flurry)
  #flurry,if=prev_gcd.1.glacial_spike&buff.brain_freeze.react
  if previousgcdspell(glacial_spike) and buffpresent(brain_freeze_buff) spell(flurry)
+ #flurry,low level fix.
+ if Level() < 100 and not hastalent(ebonbolt_talent) and buffpresent(brain_freeze_buff) spell(flurry)
  #call_action_list,name=essences,if=ovale.boss&ovale.movement
  if { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and { speed() == 0 or buffpresent(movement_allowed_buff) } frostessencesmainactions()
 
@@ -453,6 +455,8 @@ AddFunction frostsinglemainactions
   if buffstacks(icicles_buff) == 5 and not buffpresent(brain_freeze_buff) and { speed() == 0 or buffpresent(movement_allowed_buff) } spell(ebonbolt)
   #ice_lance,if=buff.brain_freeze.react&(buff.fingers_of_frost.react|prev_gcd.1.flurry)&(buff.icicles.max_stack-buff.icicles.stack)*action.frostbolt.execute_time+action.glacial_spike.cast_time+action.glacial_spike.travel_time<incanters_flow_time_to.5.any&buff.memory_of_lucid_dreams.down
   if buffpresent(brain_freeze_buff) and { buffpresent(fingers_of_frost_buff) or previousgcdspell(flurry) } and { spelldata(icicles_buff max_stacks) - buffstacks(icicles_buff) } * executetime(frostbolt) + casttime(glacial_spike) + traveltime(glacial_spike) < stacktimeto(incanters_flow_buff 5 any) and buffexpires(memory_of_lucid_dreams_essence_buff) spell(ice_lance)
+	#ice_lance,low level fix
+	if Level() < 100 and buffpresent(fingers_of_frost_buff) spell(ice_lance)
   #glacial_spike,if=(buff.brain_freeze.react|prev_gcd.1.ebonbolt|talent.incanters_flow.enabled&cast_time+travel_time>incanters_flow_time_to.5.up&cast_time+travel_time<incanters_flow_time_to.4.down)&ovale.movement
   if { buffpresent(brain_freeze_buff) or previousgcdspell(ebonbolt) or hastalent(incanters_flow_talent) and casttime(glacial_spike) + traveltime(glacial_spike) > stacktimeto(incanters_flow_buff 5 up) and casttime(glacial_spike) + traveltime(glacial_spike) < stacktimeto(incanters_flow_buff 4 down) } and { speed() == 0 or buffpresent(movement_allowed_buff) } spell(glacial_spike)
   #ice_nova

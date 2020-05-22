@@ -458,6 +458,8 @@ __exports.Emiter = __class(nil, {
                     conditionCode = "Mana() > ManaCost(arcane_blast)"
                 elseif className == "MAGE" and action == "cone_of_cold" then
                     conditionCode = "target.Distance() < 12"
+                elseif className == "MAGE" and action == "arcane_explosion" then
+                    conditionCode = "target.Distance() < 10"
                 elseif className == "MONK" and action == "chi_sphere" then
                     isSpellAction = false
                 elseif className == "MONK" and action == "gift_of_the_ox" then
@@ -658,10 +660,10 @@ __exports.Emiter = __class(nil, {
                         if name then
                             local functionName = OvaleFunctionName(name, annotation)
                             bodyCode = functionName .. "()"
-                            if className == "MAGE" and specialization == "arcane" and (name == "burn" or name == "init_burn") then
-                                conditionCode = "CheckBoxOn(opt_arcane_mage_burn_phase)"
-                                annotation.opt_arcane_mage_burn_phase = className
-                            end
+                            -- if className == "MAGE" and specialization == "arcane" and (name == "burn" or name == "init_burn") then
+                            --     conditionCode = "CheckBoxOn(opt_arcane_mage_burn_phase)"
+                            --     annotation.opt_arcane_mage_burn_phase = className
+                            -- end
                         end
                         isSpellAction = false
                     end
@@ -1902,11 +1904,13 @@ __exports.Emiter = __class(nil, {
                 code = format("BuffPresent(%s)", buffName)
                 self:AddSymbol(annotation, buffName)
             elseif operand == "ovale.boss" then
-                code = "(target.Classification(normal) and Enemies(tagged=1) >= 7 and not IsGrouped()) or (target.Classification(elite) and Enemies(tagged=1) > 5) or Boss()"
+                code = "(target.Classification(normal) and Enemies(tagged=1) >= 7 and not IsGrouped()) or (target.Classification(elite) and Enemies(tagged=1) >= 5) or Boss()"
             elseif operand == "ovale.mouseover" then
                 code = "mouseover.Present() and mouseover.HealthPercent() < 100 and not mouseover.IsFriend()"
             elseif operand == "ovale.movement" then
                 code = "(Speed() == 0 or BuffPresent(movement_allowed_buff))"
+            elseif operand == "ovale.speed" then
+                code = "Speed() == 0"
             elseif className == "DEATHKNIGHT" and sub(operand, 1, 24) == "pet.dancing_rune_weapon." then
                 local petOperand = sub(operand, 25)
                 local tokenIterator = gmatch(petOperand, OPERAND_TOKEN_PATTERN)

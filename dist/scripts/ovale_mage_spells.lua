@@ -44,7 +44,7 @@ Define(arcane_power 12042)
   # Spell damage increased by w1.rnMana costs of your damaging spells reduced by w2.
   SpellAddBuff(arcane_power arcane_power=1)
 Define(bag_of_tricks 312411)
-# Pull your chosen trick from the bag and use it on target enemy or ally. Enemies take <damage> damage, while allies are healed for <healing>. 
+# Pull your chosen trick from the bag and use it on target enemy or ally. Enemies take <damage> damage, while allies are healed for <healing>.
   SpellInfo(bag_of_tricks cd=90)
 Define(berserking 26297)
 # Increases your haste by s1 for 12 seconds.
@@ -266,6 +266,7 @@ Define(presence_of_mind 205025)
   SpellInfo(presence_of_mind cd=60 gcd=0 offgcd=1)
   # Arcane Blast is instant cast.
   SpellAddBuff(presence_of_mind presence_of_mind=1)
+  SpellRequire(presence_of_mind unusable 1=buff,evocation)
 Define(purifying_blast_0 295337)
 # Call down a purifying beam upon the target area, dealing 295293s3*(1+@versadmg)*s2 Fire damage over 6 seconds.?a295364[ Has a low chance to immediately annihilate any specimen deemed unworthy by MOTHER.][]?a295352[rnrnWhen an enemy dies within the beam, your damage is increased by 295354s1 for 8 seconds.][]rnrnAny Aberration struck by the beam is stunned for 3 seconds.
   SpellInfo(purifying_blast_0 cd=60 duration=6)
@@ -312,7 +313,7 @@ Define(reaping_flames_1 311194)
 # Burn your target with a bolt of Azerite, dealing 310712s3 Fire damage. If the target has less than s2 health or more than 310705s1 health, the cooldown is reduced by m3 sec.
   SpellInfo(reaping_flames_1 cd=45 channel=0)
 Define(reaping_flames_2 311195)
-# Burn your target with a bolt of Azerite, dealing 310712s3 Fire damage. If the target has less than s2 health or more than 310705s1 health, the cooldown is reduced by m3 sec.rnrnIf Reaping Flames kills an enemy, its cooldown is lowered to 310710s2 sec and it will deal 310710s1 increased damage on its next use. 
+# Burn your target with a bolt of Azerite, dealing 310712s3 Fire damage. If the target has less than s2 health or more than 310705s1 health, the cooldown is reduced by m3 sec.rnrnIf Reaping Flames kills an enemy, its cooldown is lowered to 310710s2 sec and it will deal 310710s1 increased damage on its next use.
   SpellInfo(reaping_flames_2 cd=45 channel=0)
 Define(reaping_flames_3 311202)
 # Burn your target with a bolt of Azerite, dealing 310712s3 Fire damage. If the target has less than s2 health?a310705[ or more than 310705s1 health][], the cooldown is reduced by s3 sec.?a310710[rnrnIf Reaping Flames kills an enemy, its cooldown is lowered to 310710s2 sec and it will deal 310710s1 increased damage on its next use.][]
@@ -401,7 +402,7 @@ Define(firestarter_talent 1) #22456
 Define(flame_on_talent 10) #22450
 # Reduces the cooldown of Fire Blast by s3 seconds and increases the maximum number of charges by s1.
 Define(flame_patch_talent 16) #22451
-# Flamestrike leaves behind a patch of flames which burns enemies within it for 8*(6 of Spell Power) Fire damage over 8 seconds. 
+# Flamestrike leaves behind a patch of flames which burns enemies within it for 8*(6 of Spell Power) Fire damage over 8 seconds.
 Define(freezing_rain_talent 16) #22454
 # Frozen Orb makes Blizzard instant cast and increases its damage done by 270232s2 for 12 seconds.
 Define(glacial_spike_talent 21) #21634
@@ -417,7 +418,7 @@ Define(kindling_talent 19) #21631
 Define(living_bomb_talent 18) #22472
 # The target becomes a Living Bomb, taking 217694o1 Fire damage over 4 seconds, and then exploding to deal an additional (14.000000000000002 of Spell Power) Fire damage to the target and all other enemies within 44461A2 yards.rnrnOther enemies hit by this explosion also become a Living Bomb, but this effect cannot spread further.
 Define(meteor_talent 21) #21633
-# Calls down a meteor which lands at the target location after 3 seconds, dealing (260 of Spell Power) Fire damage, split evenly between all targets within 8 yards, and burns the ground, dealing 8*(8.25 of Spell Power) Fire damage over 8.5 seconds to all enemies in the area. 
+# Calls down a meteor which lands at the target location after 3 seconds, dealing (260 of Spell Power) Fire damage, split evenly between all targets within 8 yards, and burns the ground, dealing 8*(8.25 of Spell Power) Fire damage over 8.5 seconds to all enemies in the area.
 Define(mirror_image_talent 8) #22445
 # Creates s2 copies of you nearby for 40 seconds, which cast spells and attack your enemies.
 Define(nether_tempest_talent 18) #22474
@@ -517,7 +518,7 @@ Define(combustion_buff 190319)
 
 	SpellInfo(comet_storm cd=30 travel_time=1)
 
-	
+
 
 	SpellInfo(counterspell cd=24 gcd=0 interrupt=1)
 Define(deep_freeze 44572)
@@ -713,6 +714,23 @@ Define(prismatic_barrier_buff 235450)
 Define(slow 31589)
 	SpellAddTargetDebuff(slow slow_debuff=1)
 Define(slow_debuff 31589)
+  SpellInfo(slow_debuff duration=15)
+Define(invisibility 66)
+  SpellInfo(invisibility cd=300)
+  SpellInfo(invisibility replaced_by=greater_invisibility specialization=arcane)
+  SpellAddBuff(invisibility invisibility_buff=1)
+Define(invisibility_buff 32612)
+  SpellInfo(invisibility_buff duration=20)
+Define(greater_invisibility 110959)
+  SpellInfo(greater_invisibility cd=120)
+  SpellAddBuff(greater_invisibility greater_invisibility_buff=1)
+Define(greater_invisibility_buff 110959)
+  SpellInfo(greater_invisibility_buff duration=20)
+Define(ice_block 45438)
+  SpellInfo(ice_block cd=240)
+  SpellAddBuff(ice_block ice_block_buff=1)
+Define(ice_block_buff 45438)
+  SpellInfo(ice_block_buff duration=10)
 
 # Talents
 Define(blazing_soul_talent 4)
@@ -739,7 +757,7 @@ Define(slipstream_talent 6)
 Define(thermal_void_talent 19)
 Define(time_anomaly_talent 20)
 Define(touch_of_the_magi_talent 17)
-	
+
 # Artifacts
 Define(mark_of_aluneth 210726)
 	SpellInfo(mark_of_aluneth cd=60)

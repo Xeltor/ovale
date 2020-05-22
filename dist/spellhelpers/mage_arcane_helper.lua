@@ -20,10 +20,10 @@ AddIcon
 	Texture(spell_nature_lightning) # Arcane Power
 	Texture(spell_nature_enchantarmor) # Presence of Mind
 	Texture(spell_nature_purge) # Evocation
-	
+
 	# Items
 	Texture(inv_jewelry_talisman_12) # Link to a trinket macro
-	
+
 	# Heart of Azeroth Skills
 	Texture(spell_azerite_essence_15) # Concentrated Flame
 	Texture(spell_azerite_essence05) # Memory of Lucid Dreams
@@ -37,12 +37,13 @@ AddIcon
 	Texture(ability_essence_reapingflames) # Reaping Flames
 	Texture(ability_essence_momentofglory) # Moment of Glory
 	Texture(ability_essence_replicaofknowledge) # Replica of Knowledge
-	
+
 	# Utility
 	Texture(spell_arcane_arcane02) # Spellsteal
 	Texture(spell_nature_slow) # Slow
 	Texture(spell_frost_frostnova) # Frost Nova
 	Texture(spell_magearmor) # Prismatic Barrier
+	Texture(ability_mage_greaterinvisibility) # Greater Invisibility
 
 	# Talents
 	Texture(ability_socererking_arcanemines) # Arcane Familiar (T1)
@@ -75,32 +76,32 @@ AddIcon
 	Texture(ability_racial_regeneratin) # Regeneratin (Zandalari Trolls)
 	Texture(ability_racial_hyperorganiclightoriginator) # Hyper Organic Light Originator (Mechagnome)
 	Texture(ability_racial_bagoftricks) # Bag of Tricks (Vulpera)
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 ]]
 

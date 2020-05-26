@@ -17,7 +17,7 @@ AddIcon specialization=1 help=main
 	{
 		#arcane_intellect
 		if not BuffPresent(arcane_intellect_buff any=1) and { not target.Present() or not target.IsFriend() } Spell(arcane_intellect)
-		if UnitInParty() and PartyMembersInRange(arcane_intellect) > BuffCountOnAny(arcane_intellect_buff) and PartyMembersWithHealthPercent(more 0) > BuffCountOnAny(arcane_intellect_buff) and { not target.Present() or not target.IsFriend() } Spell(arcane_intellect)
+		if UnitInParty() and PartyMembersInRange(arcane_intellect) > BuffCountOnAny(arcane_intellect_buff) and PartyMembersWithHealthPercent(more 0) > BuffCountOnAny(arcane_intellect_buff) and not target.IsFriend() Spell(arcane_intellect)
 		#summon_arcane_familiar
 		if not BuffPresent(arcane_familiar_buff) Spell(summon_arcane_familiar)
 	}
@@ -43,15 +43,15 @@ AddFunction arcaneinterruptactions
  }
 }
 
-AddFunction arcaneuseitemactions
+AddFunction ArcaneUseItemActions
 {
- if item(trinket0slot usable=1) texture(inv_jewelry_talisman_12)
- if item(trinket1slot usable=1) texture(inv_jewelry_talisman_12)
+ if Item(Trinket0Slot usable=1) Texture(inv_jewelry_talisman_12)
+ if Item(Trinket1Slot usable=1) Texture(inv_jewelry_talisman_12)
 }
 
 AddFunction SafetyDance
 {
-	if HealthPercent() < 20 and { UnitInParty() or UnitInRaid() } and target.istargetingplayer() Spell(greater_invisibility)
+	if HealthPercent() < 20 and HealthPercent() < target.HealthPercent() and target.istargetingplayer() Spell(greater_invisibility)
 	if target.istargetingplayer() and { target.distance() <= 8 or IncomingDamage(3) >= MaxHealth() * 0.01 } and not BuffPresent(prismatic_barrier_buff) Spell(prismatic_barrier)
 	if target.InRange(slow) and target.DebuffRemains(slow_debuff) <= CastTime(arcane_blast) + gcd() and not target.DebuffPresent(frost_nova_debuff) and target.IsPvP() and not IsBossFight() Spell(slow)
 	if target.Distance(less 12) and not target.DebuffPresent(frost_nova_debuff) and target.IsPvP() and not IsBossFight() Spell(frost_nova)
@@ -214,7 +214,7 @@ AddFunction arcaneburnmainactions
  #arcane_blast,if=active_enemies<3&(ovale.movement|buff.presence_of_mind.up)
  if enemies(tagged=1) < 3 and { speed() == 0 or buffpresent(movement_allowed_buff) or buffpresent(presence_of_mind_buff) } and mana() > manacost(arcane_blast) spell(arcane_blast)
  #arcane_barrage,if=ovale.speed
- if speed() == 0 spell(arcane_barrage)
+ if speed() == 0 and mana() < manacost(arcane_blast) spell(arcane_barrage)
 }
 
 AddFunction arcaneburnmainpostconditions
@@ -317,7 +317,7 @@ AddFunction arcaneconservemainactions
  #arcane_blast,if=(ovale.movement|buff.presence_of_mind.up)
  if { speed() == 0 or buffpresent(movement_allowed_buff) or buffpresent(presence_of_mind_buff) } and mana() > manacost(arcane_blast) spell(arcane_blast)
  #arcane_barrage,if=ovale.speed
- if speed() == 0 spell(arcane_barrage)
+ if speed() == 0 and mana() < manacost(arcane_blast) spell(arcane_barrage)
 }
 
 AddFunction arcaneconservemainpostconditions

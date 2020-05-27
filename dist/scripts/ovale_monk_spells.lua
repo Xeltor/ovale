@@ -8,7 +8,7 @@ __exports.registerMonkSpells = function(OvaleScripts)
   SpellInfo(ancestral_call cd=120 duration=15 gcd=0 offgcd=1)
   SpellAddBuff(ancestral_call ancestral_call=1)
 Define(bag_of_tricks 312411)
-# Pull your chosen trick from the bag and use it on target enemy or ally. Enemies take <damage> damage, while allies are healed for <healing>. 
+# Pull your chosen trick from the bag and use it on target enemy or ally. Enemies take <damage> damage, while allies are healed for <healing>.
   SpellInfo(bag_of_tricks cd=90)
 Define(berserking 26297)
 # Increases your haste by s1 for 12 seconds.
@@ -279,16 +279,16 @@ Define(reaping_flames_1 311194)
 # Burn your target with a bolt of Azerite, dealing 310712s3 Fire damage. If the target has less than s2 health or more than 310705s1 health, the cooldown is reduced by m3 sec.
   SpellInfo(reaping_flames_1 cd=45 channel=0)
 Define(reaping_flames_2 311195)
-# Burn your target with a bolt of Azerite, dealing 310712s3 Fire damage. If the target has less than s2 health or more than 310705s1 health, the cooldown is reduced by m3 sec.rnrnIf Reaping Flames kills an enemy, its cooldown is lowered to 310710s2 sec and it will deal 310710s1 increased damage on its next use. 
+# Burn your target with a bolt of Azerite, dealing 310712s3 Fire damage. If the target has less than s2 health or more than 310705s1 health, the cooldown is reduced by m3 sec.rnrnIf Reaping Flames kills an enemy, its cooldown is lowered to 310710s2 sec and it will deal 310710s1 increased damage on its next use.
   SpellInfo(reaping_flames_2 cd=45 channel=0)
 Define(reaping_flames_3 311202)
 # Burn your target with a bolt of Azerite, dealing 310712s3 Fire damage. If the target has less than s2 health?a310705[ or more than 310705s1 health][], the cooldown is reduced by s3 sec.?a310710[rnrnIf Reaping Flames kills an enemy, its cooldown is lowered to 310710s2 sec and it will deal 310710s1 increased damage on its next use.][]
   SpellInfo(reaping_flames_3 duration=30 gcd=0 offgcd=1)
   # Damage of next Reaping Flames increased by w1.
   SpellAddBuff(reaping_flames_3 reaping_flames_3=1)
-Define(reverse_harm 290461)
+Define(reverse_harm 287771)
 # Heals a friendly target for m1 of their maximum health, and causes m2 of the amount healed to instantly be dealt to the nearest enemy as Nature damage within 5 yards. rnrn|cFFFFFFFFGenerates s3 Chi.
-  SpellInfo(reverse_harm gcd=0 offgcd=1)
+  SpellInfo(reverse_harm cd=10)
 Define(rising_sun_kick 107428)
 # Kick upwards, dealing ?s137025[185099s1*<CAP>/AP][185099s1] Physical damage?s128595[, and reducing the effectiveness of healing on the target for 10 seconds][].
 # Rank 2: Rising Sun Kick deals s1 increased damage.rn

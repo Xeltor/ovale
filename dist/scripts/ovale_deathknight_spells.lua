@@ -16,6 +16,8 @@ Define(army_of_the_dead 42650)
   SpellInfo(army_of_the_dead runes=3 runicpower=-30 cd=480 duration=4 tick=0.5)
   # Summoning ghouls.
   SpellAddBuff(army_of_the_dead army_of_the_dead=1)
+Define(raise_abomination 288853)
+  SpellInfo(raise_abomination cd=90)
 Define(asphyxiate 108194)
 # Lifts the enemy target off the ground, crushing their throat with dark energy and stunning them for 4 seconds.
   SpellInfo(asphyxiate cd=45 duration=4 talent=asphyxiate_talent_unholy)
@@ -143,7 +145,15 @@ Define(death_coil 47541)
 Define(death_strike 49998)
 # Focuses dark power into a strike?s137006[ with both weapons, that deals a total of s1+66188s1][ that deals s1] Physical damage and heals you for s2 of all damage taken in the last s4 sec, minimum s3 of maximum health.
 # Rank 2: Death Strike's cost is reduced by s3/-10, and its healing is increased by s1.
-  SpellInfo(death_strike runicpower=45)
+  SpellInfo(death_strike runicpower=45 specialization=blood)
+  SpellInfo(death_strike runicpower=35 specialization=unholy)
+  SpellInfo(death_strike runicpower=35 specialization=frost)
+  SpellRequire(death_strike runicpower_percent 0=buff,dark_succor_buff)
+  SpellRequire(death_strike add_runicpower_from_aura -5=buff,death_strike_cost)
+  SpellAddBuff(death_strike blood_shield_buff=1 specialization=blood)
+  SpellAddBuff(death_strike voracius_buff=1 talent=voracious_talent specialization=blood)
+  SpellAddBuff(death_strike dark_succor_buff=0)
+SpellList(death_strike_cost ossuary_buff gravewarden_buff)
 Define(defile 152280)
 # Defile the targeted ground, dealing (156000s1*(10 seconds+1)/t3) Shadow damage to all enemies over 10 seconds.rnrnWhile you remain within your Defile, your ?s207311[Clawing Shadows][Scourge Strike] will hit all enemies near the target.rnrnIf any enemies are standing in the Defile, it grows in size every sec.
   SpellInfo(defile runes=1 runicpower=-10 cd=20 duration=10 tick=1 talent=defile_talent)
@@ -324,20 +334,6 @@ Define(razor_coral_3 303570)
 Define(razor_coral_4 303572)
 # ?a303565[Remove Razor Coral from your target, granting you 303573s1 Critical Strike per stack for 20 seconds.][Deal 304877s1*(1+@versadmg) Physical damage and apply Razor Coral to your target, giving your damaging abilities against the target a high chance to deal 304877s1*(1+@versadmg) Physical damage and add a stack of Razor Coral.rnrnReactivating this ability will remove Razor Coral from your target, granting you 303573s1 Critical Strike per stack for 20 seconds.]rn
   SpellInfo(razor_coral_4 channel=0 gcd=0 offgcd=1)
-Define(reaping_flames_0 310690)
-# Burn your target with a bolt of Azerite, dealing 310712s3 Fire damage. If the target has less than s2 health?a310705[ or more than 310705s1 health][], the cooldown is reduced by s3 sec.?a310710[rnrnIf Reaping Flames kills an enemy, its cooldown is lowered to 310710s2 sec and it will deal 310710s1 increased damage on its next use.][]
-  SpellInfo(reaping_flames_0 cd=45 channel=0)
-Define(reaping_flames_1 311194)
-# Burn your target with a bolt of Azerite, dealing 310712s3 Fire damage. If the target has less than s2 health or more than 310705s1 health, the cooldown is reduced by m3 sec.
-  SpellInfo(reaping_flames_1 cd=45 channel=0)
-Define(reaping_flames_2 311195)
-# Burn your target with a bolt of Azerite, dealing 310712s3 Fire damage. If the target has less than s2 health or more than 310705s1 health, the cooldown is reduced by m3 sec.rnrnIf Reaping Flames kills an enemy, its cooldown is lowered to 310710s2 sec and it will deal 310710s1 increased damage on its next use.
-  SpellInfo(reaping_flames_2 cd=45 channel=0)
-Define(reaping_flames_3 311202)
-# Burn your target with a bolt of Azerite, dealing 310712s3 Fire damage. If the target has less than s2 health?a310705[ or more than 310705s1 health][], the cooldown is reduced by s3 sec.?a310710[rnrnIf Reaping Flames kills an enemy, its cooldown is lowered to 310710s2 sec and it will deal 310710s1 increased damage on its next use.][]
-  SpellInfo(reaping_flames_3 duration=30 gcd=0 offgcd=1)
-  # Damage of next Reaping Flames increased by w1.
-  SpellAddBuff(reaping_flames_3 reaping_flames_3=1)
 Define(reckless_force_buff_0 298409)
 # When an ability fails to critically strike, you have a high chance to gain Reckless Force. When Reckless Force reaches 302917u stacks, your critical strike is increased by 302932s1 for 4 seconds.
   SpellInfo(reckless_force_buff_0 max_stacks=5 gcd=0 offgcd=1 tick=10)
@@ -440,7 +436,6 @@ SpellList(chill_streak chill_streak_0 chill_streak_1 chill_streak_2 chill_streak
 SpellList(focused_azerite_beam focused_azerite_beam_0 focused_azerite_beam_1 focused_azerite_beam_2 focused_azerite_beam_3)
 SpellList(guardian_of_azeroth guardian_of_azeroth_0 guardian_of_azeroth_1 guardian_of_azeroth_2 guardian_of_azeroth_3 guardian_of_azeroth_4 guardian_of_azeroth_5)
 SpellList(purifying_blast purifying_blast_0 purifying_blast_1 purifying_blast_2 purifying_blast_3 purifying_blast_4 purifying_blast_5)
-SpellList(reaping_flames reaping_flames_0 reaping_flames_1 reaping_flames_2 reaping_flames_3)
 SpellList(reckless_force_buff reckless_force_buff_0 reckless_force_buff_1)
 SpellList(the_unbound_force the_unbound_force_0 the_unbound_force_1 the_unbound_force_2 the_unbound_force_3 the_unbound_force_4 the_unbound_force_5 the_unbound_force_6 the_unbound_force_7)
 SpellList(condensed_life_force condensed_life_force_0 condensed_life_force_1 condensed_life_force_2 condensed_life_force_3 condensed_life_force_4)
@@ -623,10 +618,6 @@ Define(death_pact_debuff 48743)
 	SpellInfo(death_pact_debuff duration=15)
 
 
-	SpellRequire(death_strike add_runicpower_from_aura -5=buff,death_strike_cost)
-	SpellAddBuff(death_strike blood_shield_buff=1 specialization=blood)
-	SpellAddBuff(death_strike voracius_buff=1 talent=voracious_talent specialization=blood)
-SpellList(death_strike_cost ossuary_buff gravewarden_buff)
 Define(deaths_advance 48265)
 	SpellInfo(deaths_advance cd=45 gcd=0 offgcd=1)
 	SpellAddBuff(deaths_advance deaths_advance_buff=1)

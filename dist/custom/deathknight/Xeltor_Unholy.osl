@@ -20,7 +20,7 @@ AddIcon specialization=3 help=main
 	}
 
 	# Interrupt
-	if InCombat() InterruptActions()
+	if InCombat() unholyinterruptactions()
 
 	if wet() and not BuffPresent(path_of_frost) and not InCombat() Spell(path_of_frost)
 
@@ -39,37 +39,41 @@ AddIcon specialization=3 help=main
 	}
 }
 
-AddFunction InterruptActions
+AddFunction unholyinterruptactions
 {
-	if target.hasmanagedinterrupts() and target.mustbeinterrupted() or not target.hasmanagedinterrupts() and target.isinterruptible()
-  {
-   if target.inrange(mind_freeze) and target.isinterruptible() and target.remainingcasttime() <= casttime(mind_freeze) + gcd() spell(mind_freeze)
-   if target.inrange(asphyxiate) and not target.classification(worldboss) and target.remainingcasttime() <= casttime(asphyxiate) + gcd() spell(asphyxiate)
-   if target.distance(less 5) and not target.classification(worldboss) and target.remainingcasttime() <= casttime(war_stomp) + gcd() spell(war_stomp)
-  }
+ if target.hasmanagedinterrupts() and target.mustbeinterrupted() or not target.hasmanagedinterrupts() and target.isinterruptible()
+ {
+  if target.inrange(mind_freeze) and target.isinterruptible() and target.remainingcasttime() <= casttime(mind_freeze) + gcd() spell(mind_freeze)
+  if target.inrange(asphyxiate) and not target.classification(worldboss) and target.remainingcasttime() <= casttime(asphyxiate) + gcd() spell(asphyxiate)
+  if target.inrange(quaking_palm) and not target.classification(worldboss) and target.remainingcasttime() <= casttime(quaking_palm) + gcd() spell(quaking_palm)
+  if target.distance(less 6) and not target.classification(worldboss) and target.remainingcasttime() <= casttime(haymaker) + gcd() spell(haymaker)
+  if target.distance(less 5) and not target.classification(worldboss) and target.remainingcasttime() <= casttime(war_stomp) + gcd() spell(war_stomp)
+ }
 }
 
-AddFunction UnholyUseItemActions
+AddFunction unholyuseitemactions
 {
-	if Item(Trinket0Slot usable=1) Texture(inv_jewelry_talisman_12)
-	if Item(Trinket1Slot usable=1) Texture(inv_jewelry_talisman_12)
+ if item(trinket0slot usable=1) texture(inv_jewelry_talisman_12)
+ if item(trinket1slot usable=1) texture(inv_jewelry_talisman_12)
 }
 
 AddFunction pooling_for_gargoyle
 {
- SpellCooldown(summon_gargoyle) < 5 and Talent(summon_gargoyle_talent)
+ spellcooldown(summon_gargoyle) < 5 and hastalent(summon_gargoyle_talent)
 }
 
+### actions.default
 ### actions.default
 
 AddFunction defaultmainactions
 {
+ #variable,name=pooling_for_gargoyle,value=cooldown.summon_gargoyle.remains<5&talent.summon_gargoyle.enabled
  #outbreak,target_if=dot.virulent_plague.remains<=gcd
  if target.debuffremaining(virulent_plague_debuff) <= gcd() spell(outbreak)
- #call_action_list,name=essences
- unholyessencesmainactions()
+ #call_action_list,name=essences,if=ovale.boss|ovale.aoenuke
+ if boss() or target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) >= 5 unholyessencesmainactions()
 
- unless unholyessencesmainpostconditions()
+ unless { boss() or target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) >= 5 } and unholyessencesmainpostconditions()
  {
   #call_action_list,name=cooldowns
   unholycooldownsmainactions()
@@ -90,22 +94,20 @@ AddFunction defaultmainactions
 
 AddFunction defaultmainpostconditions
 {
- unholyessencesmainpostconditions() or unholycooldownsmainpostconditions() or enemies(tagged=1) >= 2 and unholyaoemainpostconditions() or unholygenericmainpostconditions()
+ { boss() or target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) >= 5 } and unholyessencesmainpostconditions() or unholycooldownsmainpostconditions() or enemies(tagged=1) >= 2 and unholyaoemainpostconditions() or unholygenericmainpostconditions()
 }
 
 AddFunction defaultshortcdactions
 {
  #auto_attack
  # unholygetinmeleerange()
- #bag_of_tricks,if=(buff.unholy_strength.up&active_enemies=1|buff.festermight.remains<gcd&active_enemies=1)&ovale.boss
- if { buffpresent(unholy_strength_buff) and enemies(tagged=1) == 1 or buffremaining(festermight) < gcd() and enemies(tagged=1) == 1 } and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } spell(bag_of_tricks)
 
  unless target.debuffremaining(virulent_plague_debuff) <= gcd() and spell(outbreak)
  {
-  #call_action_list,name=essences
-  unholyessencesshortcdactions()
+  #call_action_list,name=essences,if=ovale.boss|ovale.aoenuke
+  if boss() or target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) >= 5 unholyessencesshortcdactions()
 
-  unless unholyessencesshortcdpostconditions()
+  unless { boss() or target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) >= 5 } and unholyessencesshortcdpostconditions()
   {
    #call_action_list,name=cooldowns
    unholycooldownsshortcdactions()
@@ -127,53 +129,32 @@ AddFunction defaultshortcdactions
 
 AddFunction defaultshortcdpostconditions
 {
- target.debuffremaining(virulent_plague_debuff) <= gcd() and spell(outbreak) or unholyessencesshortcdpostconditions() or unholycooldownsshortcdpostconditions() or enemies(tagged=1) >= 2 and unholyaoeshortcdpostconditions() or unholygenericshortcdpostconditions()
+ target.debuffremaining(virulent_plague_debuff) <= gcd() and spell(outbreak) or { boss() or target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) >= 5 } and unholyessencesshortcdpostconditions() or unholycooldownsshortcdpostconditions() or enemies(tagged=1) >= 2 and unholyaoeshortcdpostconditions() or unholygenericshortcdpostconditions()
 }
 
 AddFunction defaultcdactions
 {
- # unholyinterruptactions()
- #variable,name=pooling_for_gargoyle,value=cooldown.summon_gargoyle.remains<5&talent.summon_gargoyle.enabled&ovale.boss
- #arcane_torrent,if=runic_power.deficit>65&(pet.gargoyle.active|!talent.summon_gargoyle.enabled)&rune.deficit>=5&ovale.boss
- if runicpowerdeficit() > 65 and { pet.present() or not hastalent(summon_gargoyle_talent) } and runedeficit() >= 5 and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } spell(arcane_torrent_runicpower)
- #blood_fury,if=(pet.gargoyle.active|!talent.summon_gargoyle.enabled)&ovale.boss
- if { pet.present() or not hastalent(summon_gargoyle_talent) } and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } spell(blood_fury_ap)
- #berserking,if=(buff.unholy_frenzy.up|pet.gargoyle.active|(talent.army_of_the_damned.enabled&pet.apoc_ghoul.active))&ovale.boss
- if { buffpresent(unholy_frenzy_buff) or pet.present() or hastalent(army_of_the_damned_talent) and spellcooldown(apocalypse) >= spellcooldownduration(apocalypse) - 15 } and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } spell(berserking)
- #lights_judgment,if=((buff.unholy_strength.up&buff.festermight.remains<=5)|active_enemies>=2&(buff.unholy_strength.up|buff.festermight.remains<=5))&ovale.boss
- if { buffpresent(unholy_strength_buff) and buffremaining(festermight) <= 5 or enemies(tagged=1) >= 2 and { buffpresent(unholy_strength_buff) or buffremaining(festermight) <= 5 } } and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } spell(lights_judgment)
- #ancestral_call,if=((pet.gargoyle.active&talent.summon_gargoyle.enabled)|pet.apoc_ghoul.active)&ovale.boss
- if { pet.present() and hastalent(summon_gargoyle_talent) or spellcooldown(apocalypse) >= spellcooldownduration(apocalypse) - 15 } and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } spell(ancestral_call)
- #arcane_pulse,if=(active_enemies>=2|(rune.deficit>=5&runic_power.deficit>=60))&ovale.boss
- if { enemies(tagged=1) >= 2 or runedeficit() >= 5 and runicpowerdeficit() >= 60 } and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } spell(arcane_pulse)
- #fireblood,if=((pet.gargoyle.active&talent.summon_gargoyle.enabled)|pet.apoc_ghoul.active)&ovale.boss
- if { pet.present() and hastalent(summon_gargoyle_talent) or spellcooldown(apocalypse) >= spellcooldownduration(apocalypse) - 15 } and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } spell(fireblood)
+ unholyinterruptactions()
 
- unless { buffpresent(unholy_strength_buff) and enemies(tagged=1) == 1 or buffremaining(festermight) < gcd() and enemies(tagged=1) == 1 } and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and spell(bag_of_tricks)
+ unless target.debuffremaining(virulent_plague_debuff) <= gcd() and spell(outbreak)
  {
-  #use_items,if=ovale.boss
-  if target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() unholyuseitemactions()
+  #call_action_list,name=essences,if=ovale.boss|ovale.aoenuke
+  if boss() or target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) >= 5 unholyessencescdactions()
 
-  unless target.debuffremaining(virulent_plague_debuff) <= gcd() and spell(outbreak)
+  unless { boss() or target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) >= 5 } and unholyessencescdpostconditions()
   {
-   #call_action_list,name=essences
-   unholyessencescdactions()
+   #call_action_list,name=cooldowns
+   unholycooldownscdactions()
 
-   unless unholyessencescdpostconditions()
+   unless unholycooldownscdpostconditions()
    {
-    #call_action_list,name=cooldowns
-    unholycooldownscdactions()
+    #run_action_list,name=aoe,if=active_enemies>=2
+    if enemies(tagged=1) >= 2 unholyaoecdactions()
 
-    unless unholycooldownscdpostconditions()
+    unless enemies(tagged=1) >= 2 and unholyaoecdpostconditions()
     {
-     #run_action_list,name=aoe,if=active_enemies>=2
-     if enemies(tagged=1) >= 2 unholyaoecdactions()
-
-     unless enemies(tagged=1) >= 2 and unholyaoecdpostconditions()
-     {
-      #call_action_list,name=generic
-      unholygenericcdactions()
-     }
+     #call_action_list,name=generic
+     unholygenericcdactions()
     }
    }
   }
@@ -182,43 +163,43 @@ AddFunction defaultcdactions
 
 AddFunction defaultcdpostconditions
 {
- { buffpresent(unholy_strength_buff) and enemies(tagged=1) == 1 or buffremaining(festermight) < gcd() and enemies(tagged=1) == 1 } and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and spell(bag_of_tricks) or target.debuffremaining(virulent_plague_debuff) <= gcd() and spell(outbreak) or unholyessencescdpostconditions() or unholycooldownscdpostconditions() or enemies(tagged=1) >= 2 and unholyaoecdpostconditions() or unholygenericcdpostconditions()
+ target.debuffremaining(virulent_plague_debuff) <= gcd() and spell(outbreak) or { boss() or target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) >= 5 } and unholyessencescdpostconditions() or unholycooldownscdpostconditions() or enemies(tagged=1) >= 2 and unholyaoecdpostconditions() or unholygenericcdpostconditions()
 }
 
 ### actions.aoe
 
 AddFunction unholyaoemainactions
 {
- #defile
- spell(defile)
- #epidemic,if=death_and_decay.ticking&rune<2&!variable.pooling_for_gargoyle
- if buffpresent(death_and_decay) and runecount() < 2 and not pooling_for_gargoyle() spell(epidemic)
- #death_coil,if=death_and_decay.ticking&rune<2&!variable.pooling_for_gargoyle
- if buffpresent(death_and_decay) and runecount() < 2 and not pooling_for_gargoyle() spell(death_coil)
+ #defile,if=cooldown.apocalypse.remains
+ if { spellcooldown(apocalypse) > 0 or not spellknown(apocalypse) } spell(defile)
+ #epidemic,if=death_and_decay.ticking&runic_power.deficit<14&!talent.bursting_sores.enabled&!variable.pooling_for_gargoyle
+ if buffpresent(death_and_decay) and runicpowerdeficit() < 14 and not hastalent(bursting_sores_talent) and not pooling_for_gargoyle() and debuffcountonany(virulent_plague_debuff) > 1 spell(epidemic)
+ #epidemic,if=death_and_decay.ticking&(!death_knight.fwounded_targets&talent.bursting_sores.enabled)&!variable.pooling_for_gargoyle
+ if buffpresent(death_and_decay) and not debuffcountonany(festering_wound_debuff) and hastalent(bursting_sores_talent) and not pooling_for_gargoyle() and debuffcountonany(virulent_plague_debuff) > 1 spell(epidemic)
  #scourge_strike,if=death_and_decay.ticking&cooldown.apocalypse.remains
- if buffpresent(death_and_decay) and spellcooldown(apocalypse) > 0 spell(scourge_strike)
+ if buffpresent(death_and_decay) and { spellcooldown(apocalypse) > 0 or not spellknown(apocalypse) } spell(scourge_strike)
  #clawing_shadows,if=death_and_decay.ticking&cooldown.apocalypse.remains
- if buffpresent(death_and_decay) and spellcooldown(apocalypse) > 0 spell(clawing_shadows)
+ if buffpresent(death_and_decay) and { spellcooldown(apocalypse) > 0 or not spellknown(apocalypse) } spell(clawing_shadows)
  #epidemic,if=!variable.pooling_for_gargoyle
- if not pooling_for_gargoyle() spell(epidemic)
- #festering_strike,target_if=debuff.festering_wound.stack<=1&cooldown.death_and_decay.remains
- if target.debuffstacks(festering_wound_debuff) <= 1 and spellcooldown(death_and_decay) > 0 spell(festering_strike)
- #festering_strike,if=talent.bursting_sores.enabled&spell_targets.bursting_sores>=2&debuff.festering_wound.stack<=1
- if hastalent(bursting_sores_talent) and enemies(tagged=1) >= 2 and target.debuffstacks(festering_wound_debuff) <= 1 spell(festering_strike)
- #death_coil,if=buff.sudden_doom.react&rune.deficit>=4
- if buffpresent(sudden_doom_buff) and runedeficit() >= 4 spell(death_coil)
+ if not pooling_for_gargoyle() and debuffcountonany(virulent_plague_debuff) > 1 spell(epidemic)
+ #festering_strike,target_if=debuff.festering_wound.stack<=2&cooldown.death_and_decay.remains&cooldown.apocalypse.remains>5&(cooldown.army_of_the_dead.remains>5|death_knight.disable_aotd)
+ if target.debuffstacks(festering_wound_debuff) <= 2 and spellcooldown(death_and_decay) > 0 and { spellcooldown(apocalypse) > 5 or not spellknown(apocalypse) } and { SpellCooldown(army_of_the_dead) > 5 or not SpellKnown(army_of_the_dead) or not Boss() } spell(festering_strike)
+ #death_coil,if=buff.sudden_doom.react&rune.time_to_4>gcd
+ if buffpresent(sudden_doom_buff) and timetorunes(4) > gcd() spell(death_coil)
  #death_coil,if=buff.sudden_doom.react&!variable.pooling_for_gargoyle|pet.gargoyle.active
  if buffpresent(sudden_doom_buff) and not pooling_for_gargoyle() or pet.present() spell(death_coil)
  #death_coil,if=runic_power.deficit<14&(cooldown.apocalypse.remains>5|debuff.festering_wound.stack>4)&!variable.pooling_for_gargoyle
- if runicpowerdeficit() < 14 and { spellcooldown(apocalypse) > 5 or target.debuffstacks(festering_wound_debuff) > 4 } and not pooling_for_gargoyle() spell(death_coil)
- #scourge_strike,if=((debuff.festering_wound.up&cooldown.apocalypse.remains>5)|debuff.festering_wound.stack>4)&(cooldown.army_of_the_dead.remains>5|death_knight.disable_aotd)
- if { target.debuffpresent(festering_wound_debuff) and spellcooldown(apocalypse) > 5 or target.debuffstacks(festering_wound_debuff) > 4 } and { 480 > 5 or true(disable_aotd) } spell(scourge_strike)
- #clawing_shadows,if=((debuff.festering_wound.up&cooldown.apocalypse.remains>5)|debuff.festering_wound.stack>4)&(cooldown.army_of_the_dead.remains>5|death_knight.disable_aotd)
- if { target.debuffpresent(festering_wound_debuff) and spellcooldown(apocalypse) > 5 or target.debuffstacks(festering_wound_debuff) > 4 } and { 480 > 5 or true(disable_aotd) } spell(clawing_shadows)
+ if runicpowerdeficit() < 14 and { { spellcooldown(apocalypse) > 5 or not spellknown(apocalypse) } or target.debuffstacks(festering_wound_debuff) > 4 } and not pooling_for_gargoyle() spell(death_coil)
+ #scourge_strike,target_if=((cooldown.army_of_the_dead.remains>5|death_knight.disable_aotd)&(cooldown.apocalypse.remains>5&debuff.festering_wound.stack>0|debuff.festering_wound.stack>4)&(target.1.time_to_die<cooldown.death_and_decay.remains+10|target.1.time_to_die>cooldown.apocalypse.remains))
+ if { SpellCooldown(army_of_the_dead) > 5 or not SpellKnown(army_of_the_dead) or not Boss() } and { { spellcooldown(apocalypse) > 5 or not spellknown(apocalypse) } and target.debuffstacks(festering_wound_debuff) > 0 or target.debuffstacks(festering_wound_debuff) > 4 } and { target.timetodie() < spellcooldown(death_and_decay) + 10 or target.timetodie() > spellcooldown(apocalypse) } spell(scourge_strike)
+ #clawing_shadows,target_if=((cooldown.army_of_the_dead.remains>5|death_knight.disable_aotd)&(cooldown.apocalypse.remains>5&debuff.festering_wound.stack>0|debuff.festering_wound.stack>4)&(target.1.time_to_die<cooldown.death_and_decay.remains+10|target.1.time_to_die>cooldown.apocalypse.remains))
+ if { SpellCooldown(army_of_the_dead) > 5 or not SpellKnown(army_of_the_dead) or not Boss() } and { { spellcooldown(apocalypse) > 5 or not spellknown(apocalypse) } and target.debuffstacks(festering_wound_debuff) > 0 or target.debuffstacks(festering_wound_debuff) > 4 } and { target.timetodie() < spellcooldown(death_and_decay) + 10 or target.timetodie() > spellcooldown(apocalypse) } spell(clawing_shadows)
  #death_coil,if=runic_power.deficit<20&!variable.pooling_for_gargoyle
  if runicpowerdeficit() < 20 and not pooling_for_gargoyle() spell(death_coil)
  #festering_strike,if=((((debuff.festering_wound.stack<4&!buff.unholy_frenzy.up)|debuff.festering_wound.stack<3)&cooldown.apocalypse.remains<3)|debuff.festering_wound.stack<1)&(cooldown.army_of_the_dead.remains>5|death_knight.disable_aotd)
- if { { target.debuffstacks(festering_wound_debuff) < 4 and not buffpresent(unholy_frenzy_buff) or target.debuffstacks(festering_wound_debuff) < 3 } and spellcooldown(apocalypse) < 3 or target.debuffstacks(festering_wound_debuff) < 1 } and { 480 > 5 or true(disable_aotd) } spell(festering_strike)
+ if { { target.debuffstacks(festering_wound_debuff) < 4 and not buffpresent(unholy_frenzy_buff) or target.debuffstacks(festering_wound_debuff) < 3 } and spellcooldown(apocalypse) < 3 or target.debuffstacks(festering_wound_debuff) < 1 } and { SpellCooldown(army_of_the_dead) > 5 or not SpellKnown(army_of_the_dead) or not Boss() } spell(festering_strike)
+ #scourge_strike,if=death_and_decay.ticking
+ if buffpresent(death_and_decay) spell(scourge_strike)
  #death_coil,if=!variable.pooling_for_gargoyle
  if not pooling_for_gargoyle() spell(death_coil)
 }
@@ -230,12 +211,12 @@ AddFunction unholyaoemainpostconditions
 AddFunction unholyaoeshortcdactions
 {
  #death_and_decay,if=cooldown.apocalypse.remains
- if spellcooldown(apocalypse) > 0 spell(death_and_decay)
+ if { spellcooldown(apocalypse) > 0 or not spellknown(apocalypse) } and Speed() == 0 spell(death_and_decay)
 }
 
 AddFunction unholyaoeshortcdpostconditions
 {
- spell(defile) or buffpresent(death_and_decay) and runecount() < 2 and not pooling_for_gargoyle() and spell(epidemic) or buffpresent(death_and_decay) and runecount() < 2 and not pooling_for_gargoyle() and spell(death_coil) or buffpresent(death_and_decay) and spellcooldown(apocalypse) > 0 and spell(scourge_strike) or buffpresent(death_and_decay) and spellcooldown(apocalypse) > 0 and spell(clawing_shadows) or not pooling_for_gargoyle() and spell(epidemic) or target.debuffstacks(festering_wound_debuff) <= 1 and spellcooldown(death_and_decay) > 0 and spell(festering_strike) or hastalent(bursting_sores_talent) and enemies(tagged=1) >= 2 and target.debuffstacks(festering_wound_debuff) <= 1 and spell(festering_strike) or buffpresent(sudden_doom_buff) and runedeficit() >= 4 and spell(death_coil) or { buffpresent(sudden_doom_buff) and not pooling_for_gargoyle() or pet.present() } and spell(death_coil) or runicpowerdeficit() < 14 and { spellcooldown(apocalypse) > 5 or target.debuffstacks(festering_wound_debuff) > 4 } and not pooling_for_gargoyle() and spell(death_coil) or { target.debuffpresent(festering_wound_debuff) and spellcooldown(apocalypse) > 5 or target.debuffstacks(festering_wound_debuff) > 4 } and { 480 > 5 or true(disable_aotd) } and spell(scourge_strike) or { target.debuffpresent(festering_wound_debuff) and spellcooldown(apocalypse) > 5 or target.debuffstacks(festering_wound_debuff) > 4 } and { 480 > 5 or true(disable_aotd) } and spell(clawing_shadows) or runicpowerdeficit() < 20 and not pooling_for_gargoyle() and spell(death_coil) or { { target.debuffstacks(festering_wound_debuff) < 4 and not buffpresent(unholy_frenzy_buff) or target.debuffstacks(festering_wound_debuff) < 3 } and spellcooldown(apocalypse) < 3 or target.debuffstacks(festering_wound_debuff) < 1 } and { 480 > 5 or true(disable_aotd) } and spell(festering_strike) or not pooling_for_gargoyle() and spell(death_coil)
+ { spellcooldown(apocalypse) > 0 or not spellknown(apocalypse) } and spell(defile) or buffpresent(death_and_decay) and runicpowerdeficit() < 14 and not hastalent(bursting_sores_talent) and not pooling_for_gargoyle() and debuffcountonany(virulent_plague_debuff) > 1 and spell(epidemic) or buffpresent(death_and_decay) and not debuffcountonany(festering_wound_debuff) and hastalent(bursting_sores_talent) and not pooling_for_gargoyle() and debuffcountonany(virulent_plague_debuff) > 1 and spell(epidemic) or buffpresent(death_and_decay) and { spellcooldown(apocalypse) > 0 or not spellknown(apocalypse) } and spell(scourge_strike) or buffpresent(death_and_decay) and { spellcooldown(apocalypse) > 0 or not spellknown(apocalypse) } and spell(clawing_shadows) or not pooling_for_gargoyle() and debuffcountonany(virulent_plague_debuff) > 1 and spell(epidemic) or target.debuffstacks(festering_wound_debuff) <= 2 and spellcooldown(death_and_decay) > 0 and { spellcooldown(apocalypse) > 5 or not spellknown(apocalypse) } and { SpellCooldown(army_of_the_dead) > 5 or not SpellKnown(army_of_the_dead) or not Boss() } and spell(festering_strike) or buffpresent(sudden_doom_buff) and timetorunes(4) > gcd() and spell(death_coil) or { buffpresent(sudden_doom_buff) and not pooling_for_gargoyle() or pet.present() } and spell(death_coil) or runicpowerdeficit() < 14 and { { spellcooldown(apocalypse) > 5 or not spellknown(apocalypse) } or target.debuffstacks(festering_wound_debuff) > 4 } and not pooling_for_gargoyle() and spell(death_coil) or { SpellCooldown(army_of_the_dead) > 5 or not SpellKnown(army_of_the_dead) or not Boss() } and { { spellcooldown(apocalypse) > 5 or not spellknown(apocalypse) } and target.debuffstacks(festering_wound_debuff) > 0 or target.debuffstacks(festering_wound_debuff) > 4 } and { target.timetodie() < spellcooldown(death_and_decay) + 10 or target.timetodie() > spellcooldown(apocalypse) } and spell(scourge_strike) or { SpellCooldown(army_of_the_dead) > 5 or not SpellKnown(army_of_the_dead) or not Boss() } and { { spellcooldown(apocalypse) > 5 or not spellknown(apocalypse) } and target.debuffstacks(festering_wound_debuff) > 0 or target.debuffstacks(festering_wound_debuff) > 4 } and { target.timetodie() < spellcooldown(death_and_decay) + 10 or target.timetodie() > spellcooldown(apocalypse) } and spell(clawing_shadows) or runicpowerdeficit() < 20 and not pooling_for_gargoyle() and spell(death_coil) or { { target.debuffstacks(festering_wound_debuff) < 4 and not buffpresent(unholy_frenzy_buff) or target.debuffstacks(festering_wound_debuff) < 3 } and spellcooldown(apocalypse) < 3 or target.debuffstacks(festering_wound_debuff) < 1 } and { SpellCooldown(army_of_the_dead) > 5 or not SpellKnown(army_of_the_dead) or not Boss() } and spell(festering_strike) or buffpresent(death_and_decay) and spell(scourge_strike) or not pooling_for_gargoyle() and spell(death_coil)
 }
 
 AddFunction unholyaoecdactions
@@ -244,7 +225,7 @@ AddFunction unholyaoecdactions
 
 AddFunction unholyaoecdpostconditions
 {
- spellcooldown(apocalypse) > 0 and spell(death_and_decay) or spell(defile) or buffpresent(death_and_decay) and runecount() < 2 and not pooling_for_gargoyle() and spell(epidemic) or buffpresent(death_and_decay) and runecount() < 2 and not pooling_for_gargoyle() and spell(death_coil) or buffpresent(death_and_decay) and spellcooldown(apocalypse) > 0 and spell(scourge_strike) or buffpresent(death_and_decay) and spellcooldown(apocalypse) > 0 and spell(clawing_shadows) or not pooling_for_gargoyle() and spell(epidemic) or target.debuffstacks(festering_wound_debuff) <= 1 and spellcooldown(death_and_decay) > 0 and spell(festering_strike) or hastalent(bursting_sores_talent) and enemies(tagged=1) >= 2 and target.debuffstacks(festering_wound_debuff) <= 1 and spell(festering_strike) or buffpresent(sudden_doom_buff) and runedeficit() >= 4 and spell(death_coil) or { buffpresent(sudden_doom_buff) and not pooling_for_gargoyle() or pet.present() } and spell(death_coil) or runicpowerdeficit() < 14 and { spellcooldown(apocalypse) > 5 or target.debuffstacks(festering_wound_debuff) > 4 } and not pooling_for_gargoyle() and spell(death_coil) or { target.debuffpresent(festering_wound_debuff) and spellcooldown(apocalypse) > 5 or target.debuffstacks(festering_wound_debuff) > 4 } and { 480 > 5 or true(disable_aotd) } and spell(scourge_strike) or { target.debuffpresent(festering_wound_debuff) and spellcooldown(apocalypse) > 5 or target.debuffstacks(festering_wound_debuff) > 4 } and { 480 > 5 or true(disable_aotd) } and spell(clawing_shadows) or runicpowerdeficit() < 20 and not pooling_for_gargoyle() and spell(death_coil) or { { target.debuffstacks(festering_wound_debuff) < 4 and not buffpresent(unholy_frenzy_buff) or target.debuffstacks(festering_wound_debuff) < 3 } and spellcooldown(apocalypse) < 3 or target.debuffstacks(festering_wound_debuff) < 1 } and { 480 > 5 or true(disable_aotd) } and spell(festering_strike) or not pooling_for_gargoyle() and spell(death_coil)
+ { spellcooldown(apocalypse) > 0 or not spellknown(apocalypse) } and spell(death_and_decay) or { spellcooldown(apocalypse) > 0 or not spellknown(apocalypse) } and spell(defile) or buffpresent(death_and_decay) and runicpowerdeficit() < 14 and not hastalent(bursting_sores_talent) and not pooling_for_gargoyle() and debuffcountonany(virulent_plague_debuff) > 1 and spell(epidemic) or buffpresent(death_and_decay) and not debuffcountonany(festering_wound_debuff) and hastalent(bursting_sores_talent) and not pooling_for_gargoyle() and debuffcountonany(virulent_plague_debuff) > 1 and spell(epidemic) or buffpresent(death_and_decay) and { spellcooldown(apocalypse) > 0 or not spellknown(apocalypse) } and spell(scourge_strike) or buffpresent(death_and_decay) and { spellcooldown(apocalypse) > 0 or not spellknown(apocalypse) } and spell(clawing_shadows) or not pooling_for_gargoyle() and debuffcountonany(virulent_plague_debuff) > 1 and spell(epidemic) or target.debuffstacks(festering_wound_debuff) <= 2 and spellcooldown(death_and_decay) > 0 and { spellcooldown(apocalypse) > 5 or not spellknown(apocalypse) } and { SpellCooldown(army_of_the_dead) > 5 or not SpellKnown(army_of_the_dead) or not Boss() } and spell(festering_strike) or buffpresent(sudden_doom_buff) and timetorunes(4) > gcd() and spell(death_coil) or { buffpresent(sudden_doom_buff) and not pooling_for_gargoyle() or pet.present() } and spell(death_coil) or runicpowerdeficit() < 14 and { { spellcooldown(apocalypse) > 5 or not spellknown(apocalypse) } or target.debuffstacks(festering_wound_debuff) > 4 } and not pooling_for_gargoyle() and spell(death_coil) or { SpellCooldown(army_of_the_dead) > 5 or not SpellKnown(army_of_the_dead) or not Boss() } and { { spellcooldown(apocalypse) > 5 or not spellknown(apocalypse) } and target.debuffstacks(festering_wound_debuff) > 0 or target.debuffstacks(festering_wound_debuff) > 4 } and { target.timetodie() < spellcooldown(death_and_decay) + 10 or target.timetodie() > spellcooldown(apocalypse) } and spell(scourge_strike) or { SpellCooldown(army_of_the_dead) > 5 or not SpellKnown(army_of_the_dead) or not Boss() } and { { spellcooldown(apocalypse) > 5 or not spellknown(apocalypse) } and target.debuffstacks(festering_wound_debuff) > 0 or target.debuffstacks(festering_wound_debuff) > 4 } and { target.timetodie() < spellcooldown(death_and_decay) + 10 or target.timetodie() > spellcooldown(apocalypse) } and spell(clawing_shadows) or runicpowerdeficit() < 20 and not pooling_for_gargoyle() and spell(death_coil) or { { target.debuffstacks(festering_wound_debuff) < 4 and not buffpresent(unholy_frenzy_buff) or target.debuffstacks(festering_wound_debuff) < 3 } and spellcooldown(apocalypse) < 3 or target.debuffstacks(festering_wound_debuff) < 1 } and { SpellCooldown(army_of_the_dead) > 5 or not SpellKnown(army_of_the_dead) or not Boss() } and spell(festering_strike) or buffpresent(death_and_decay) and spell(scourge_strike) or not pooling_for_gargoyle() and spell(death_coil)
 }
 
 ### actions.cooldowns
@@ -259,18 +240,20 @@ AddFunction unholycooldownsmainpostconditions
 
 AddFunction unholycooldownsshortcdactions
 {
- #apocalypse,if=debuff.festering_wound.stack>=4&ovale.boss
- if target.debuffstacks(festering_wound_debuff) >= 4 and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } spell(apocalypse)
- #dark_transformation,if=ovale.boss
- if target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() spell(dark_transformation)
- #unholy_frenzy,if=(essence.vision_of_perfection.enabled|(essence.condensed_lifeforce.enabled&pet.apoc_ghoul.active)|debuff.festering_wound.stack<4&!(equipped.ramping_amplitude_gigavolt_engine|azerite.magus_of_the_dead.enabled)|cooldown.apocalypse.remains<2&(equipped.ramping_amplitude_gigavolt_engine|azerite.magus_of_the_dead.enabled))&ovale.boss
- if { azeriteessenceisenabled(vision_of_perfection_essence_id) or azeriteessenceisenabled(condensed_life_force_essence_id) and spellcooldown(apocalypse) >= spellcooldownduration(apocalypse) - 15 or target.debuffstacks(festering_wound_debuff) < 4 and not { hasequippeditem(ramping_amplitude_gigavolt_engine_item) or hasazeritetrait(magus_of_the_dead_trait) } or spellcooldown(apocalypse) < 2 and { hasequippeditem(ramping_amplitude_gigavolt_engine_item) or hasazeritetrait(magus_of_the_dead_trait) } } and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } spell(unholy_frenzy)
- #unholy_frenzy,if=active_enemies>=2&((cooldown.death_and_decay.remains<=gcd&!talent.defile.enabled)|(cooldown.defile.remains<=gcd&talent.defile.enabled))&ovale.boss
- if enemies(tagged=1) >= 2 and { spellcooldown(death_and_decay) <= gcd() and not hastalent(defile_talent) or spellcooldown(defile) <= gcd() and hastalent(defile_talent) } and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } spell(unholy_frenzy)
+ #bag_of_tricks,if=(buff.unholy_strength.up&active_enemies=1|buff.festermight.remains<gcd&active_enemies=1)&ovale.boss
+ if { buffpresent(unholy_strength_buff) and enemies(tagged=1) == 1 or buffremaining(festermight) < gcd() and enemies(tagged=1) == 1 } and boss() spell(bag_of_tricks)
+ #apocalypse,if=debuff.festering_wound.stack>=4&(active_enemies>=2|!essence.vision_of_perfection.enabled|!azerite.magus_of_the_dead.enabled|essence.vision_of_perfection.enabled&(talent.unholy_frenzy.enabled&cooldown.unholy_frenzy.remains<=3|!talent.unholy_frenzy.enabled))
+ if target.debuffstacks(festering_wound_debuff) >= 4 and { enemies(tagged=1) >= 2 or not azeriteessenceisenabled(vision_of_perfection_essence_id) or not hasazeritetrait(magus_of_the_dead_trait) or azeriteessenceisenabled(vision_of_perfection_essence_id) and { hastalent(unholy_frenzy_talent) and spellcooldown(unholy_frenzy) <= 3 or not hastalent(unholy_frenzy_talent) } } spell(apocalypse)
+ #dark_transformation,if=ovale.boss|ovale.aoenuke
+ if boss() or target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) >= 5 spell(dark_transformation)
+ #unholy_frenzy,if=(essence.vision_of_perfection.enabled&pet.apoc_ghoul.active|debuff.festering_wound.stack<4&!essence.vision_of_perfection.enabled&(!azerite.magus_of_the_dead.enabled|azerite.magus_of_the_dead.enabled&pet.apoc_ghoul.active))&(ovale.boss|ovale.aoenuke)
+ if { azeriteessenceisenabled(vision_of_perfection_essence_id) and spellcooldown(apocalypse) >= spellcooldownduration(apocalypse) - 15 or target.debuffstacks(festering_wound_debuff) < 4 and not azeriteessenceisenabled(vision_of_perfection_essence_id) and { not hasazeritetrait(magus_of_the_dead_trait) or hasazeritetrait(magus_of_the_dead_trait) and spellcooldown(apocalypse) >= spellcooldownduration(apocalypse) - 15 } } and { boss() or target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) >= 5 } spell(unholy_frenzy)
+ #unholy_frenzy,if=active_enemies>=2&((cooldown.death_and_decay.remains<=gcd&!talent.defile.enabled)|(cooldown.defile.remains<=gcd&talent.defile.enabled))&(ovale.boss|ovale.aoenuke)
+ if enemies(tagged=1) >= 2 and { spellcooldown(death_and_decay) <= gcd() and not hastalent(defile_talent) or spellcooldown(defile) <= gcd() and hastalent(defile_talent) } and { boss() or target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) >= 5 } spell(unholy_frenzy)
  #soul_reaper,target_if=target.time_to_die<8&target.time_to_die>4
  if target.timetodie() < 8 and target.timetodie() > 4 spell(soul_reaper)
- #soul_reaper,if=(!raid_event.adds.exists|raid_event.adds.in>20)&rune<=(1-buff.unholy_frenzy.up)
- if { not false(raid_event_adds_exists) or 600 > 20 } and runecount() <= 1 - buffpresent(unholy_frenzy_buff) spell(soul_reaper)
+ #soul_reaper,if=rune<=(1-buff.unholy_frenzy.up)
+ if runecount() <= 1 - buffpresent(unholy_frenzy_buff) spell(soul_reaper)
  #unholy_blight
  spell(unholy_blight)
 }
@@ -281,19 +264,60 @@ AddFunction unholycooldownsshortcdpostconditions
 
 AddFunction unholycooldownscdactions
 {
- #army_of_the_dead,if=ovale.boss
- if target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() spell(army_of_the_dead)
+ #arcane_torrent,if=runic_power.deficit>65&(pet.gargoyle.active|!talent.summon_gargoyle.enabled)&rune.deficit>=5&ovale.boss
+ if runicpowerdeficit() > 65 and { pet.present() or not hastalent(summon_gargoyle_talent) } and runedeficit() >= 5 and boss() spell(arcane_torrent_runicpower)
+ #blood_fury,if=(pet.gargoyle.active|!talent.summon_gargoyle.enabled)&ovale.boss
+ if { pet.present() or not hastalent(summon_gargoyle_talent) } and boss() spell(blood_fury_ap)
+ #berserking,if=(buff.unholy_frenzy.up|pet.gargoyle.active|(talent.army_of_the_damned.enabled&pet.apoc_ghoul.active))&ovale.boss
+ if { buffpresent(unholy_frenzy_buff) or pet.present() or hastalent(army_of_the_damned_talent) and spellcooldown(apocalypse) >= spellcooldownduration(apocalypse) - 15 } and boss() spell(berserking)
+ #lights_judgment,if=((buff.unholy_strength.up&buff.festermight.remains<=5)|active_enemies>=2&(buff.unholy_strength.up|buff.festermight.remains<=5))&ovale.boss
+ if { buffpresent(unholy_strength_buff) and buffremaining(festermight) <= 5 or enemies(tagged=1) >= 2 and { buffpresent(unholy_strength_buff) or buffremaining(festermight) <= 5 } } and { boss() or target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) >= 5 } spell(lights_judgment)
+ #ancestral_call,if=((pet.gargoyle.active&talent.summon_gargoyle.enabled)|pet.apoc_ghoul.active)&ovale.boss
+ if { pet.present() and hastalent(summon_gargoyle_talent) or spellcooldown(apocalypse) >= spellcooldownduration(apocalypse) - 15 } and boss() spell(ancestral_call)
+ #arcane_pulse,if=(active_enemies>=2|(rune.deficit>=5&runic_power.deficit>=60))&ovale.boss
+ if { enemies(tagged=1) >= 2 or runedeficit() >= 5 and runicpowerdeficit() >= 60 } and boss() spell(arcane_pulse)
+ #fireblood,if=((pet.gargoyle.active&talent.summon_gargoyle.enabled)|pet.apoc_ghoul.active)&ovale.boss
+ if { pet.present() and hastalent(summon_gargoyle_talent) or spellcooldown(apocalypse) >= spellcooldownduration(apocalypse) - 15 } and boss() spell(fireblood)
 
- unless target.debuffstacks(festering_wound_debuff) >= 4 and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and spell(apocalypse) or { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and spell(dark_transformation)
+ unless { buffpresent(unholy_strength_buff) and enemies(tagged=1) == 1 or buffremaining(festermight) < gcd() and enemies(tagged=1) == 1 } and boss() and spell(bag_of_tricks)
  {
-  #summon_gargoyle,if=runic_power.deficit<14&ovale.boss
-  if runicpowerdeficit() < 14 and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } spell(summon_gargoyle)
+  #use_items,if=(time>20|!equipped.ramping_amplitude_gigavolt_engine|!equipped.vision_of_demise)&(ovale.boss|ovale.aoenuke)
+  if { timeincombat() > 20 or not hasequippeditem(ramping_amplitude_gigavolt_engine_item) or not hasequippeditem(vision_of_demise_item) } and { boss() or target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) >= 5 } unholyuseitemactions()
+  #use_item,name=ashvanes_razor_coral,if=debuff.razor_coral_debuff.stack<1&ovale.boss
+  if target.debuffstacks(razor_coral_debuff) < 1 and boss() unholyuseitemactions()
+  #use_item,name=ashvanes_razor_coral,if=pet.guardian_of_azeroth.active&pet.apoc_ghoul.active&ovale.boss
+  if pet.present() and spellcooldown(apocalypse) >= spellcooldownduration(apocalypse) - 15 and boss() unholyuseitemactions()
+  #use_item,name=ashvanes_razor_coral,if=cooldown.apocalypse.ready&(essence.condensed_lifeforce.major&target.1.time_to_die<cooldown.condensed_lifeforce.remains+20|!essence.condensed_lifeforce.major)&ovale.boss
+  if spellcooldown(apocalypse) == 0 and { azeriteessenceismajor(condensed_life_force_essence_id) and target.timetodie() < spellcooldown(condensed_life_force) + 20 or not azeriteessenceismajor(condensed_life_force_essence_id) } and boss() unholyuseitemactions()
+  #use_item,name=ashvanes_razor_coral,if=target.1.time_to_die<cooldown.apocalypse.remains+20&ovale.boss
+  if target.timetodie() < spellcooldown(apocalypse) + 20 and boss() unholyuseitemactions()
+  #use_item,name=vision_of_demise,if=((cooldown.apocalypse.ready&debuff.festering_wound.stack>=4&essence.vision_of_perfection.enabled)|buff.unholy_frenzy.up|pet.gargoyle.active)&ovale.boss
+  if { spellcooldown(apocalypse) == 0 and target.debuffstacks(festering_wound_debuff) >= 4 and azeriteessenceisenabled(vision_of_perfection_essence_id) or buffpresent(unholy_frenzy_buff) or pet.present() } and boss() unholyuseitemactions()
+  #use_item,name=ramping_amplitude_gigavolt_engine,if=(cooldown.apocalypse.remains<2|talent.army_of_the_damned.enabled)&ovale.boss
+  if { spellcooldown(apocalypse) < 2 or hastalent(army_of_the_damned_talent) } and boss() unholyuseitemactions()
+  #use_item,name=bygone_bee_almanac,if=(cooldown.summon_gargoyle.remains>60|!talent.summon_gargoyle.enabled&time>20|!equipped.ramping_amplitude_gigavolt_engine)&ovale.boss
+  if { spellcooldown(summon_gargoyle) > 60 or not hastalent(summon_gargoyle_talent) and timeincombat() > 20 or not hasequippeditem(ramping_amplitude_gigavolt_engine_item) } and boss() unholyuseitemactions()
+  #use_item,name=jes_howler,if=(pet.gargoyle.active|!talent.summon_gargoyle.enabled&time>20|!equipped.ramping_amplitude_gigavolt_engine)&ovale.boss
+  if { pet.present() or not hastalent(summon_gargoyle_talent) and timeincombat() > 20 or not hasequippeditem(ramping_amplitude_gigavolt_engine_item) } and boss() unholyuseitemactions()
+  #use_item,name=galecallers_beak,if=(pet.gargoyle.active|!talent.summon_gargoyle.enabled&time>20|!equipped.ramping_amplitude_gigavolt_engine)&ovale.boss
+  if { pet.present() or not hastalent(summon_gargoyle_talent) and timeincombat() > 20 or not hasequippeditem(ramping_amplitude_gigavolt_engine_item) } and boss() unholyuseitemactions()
+  #use_item,name=grongs_primal_rage,if=rune<=3&(time>20|!equipped.ramping_amplitude_gigavolt_engine)&ovale.boss
+  if runecount() <= 3 and { timeincombat() > 20 or not hasequippeditem(ramping_amplitude_gigavolt_engine_item) } and boss() unholyuseitemactions()
+  #army_of_the_dead,if=ovale.boss
+  if boss() spell(army_of_the_dead)
+  if boss() or target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) >= 5 spell(raise_abomination)
+
+  unless target.debuffstacks(festering_wound_debuff) >= 4 and { enemies(tagged=1) >= 2 or not azeriteessenceisenabled(vision_of_perfection_essence_id) or not hasazeritetrait(magus_of_the_dead_trait) or azeriteessenceisenabled(vision_of_perfection_essence_id) and { hastalent(unholy_frenzy_talent) and spellcooldown(unholy_frenzy) <= 3 or not hastalent(unholy_frenzy_talent) } } and spell(apocalypse) or { boss() or target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) >= 5 } and spell(dark_transformation)
+  {
+   #summon_gargoyle,if=runic_power.deficit<14&ovale.boss
+   if runicpowerdeficit() < 14 and boss() spell(summon_gargoyle)
+  }
  }
 }
 
 AddFunction unholycooldownscdpostconditions
 {
- target.debuffstacks(festering_wound_debuff) >= 4 and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and spell(apocalypse) or { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and spell(dark_transformation) or { azeriteessenceisenabled(vision_of_perfection_essence_id) or azeriteessenceisenabled(condensed_life_force_essence_id) and spellcooldown(apocalypse) >= spellcooldownduration(apocalypse) - 15 or target.debuffstacks(festering_wound_debuff) < 4 and not { hasequippeditem(ramping_amplitude_gigavolt_engine_item) or hasazeritetrait(magus_of_the_dead_trait) } or spellcooldown(apocalypse) < 2 and { hasequippeditem(ramping_amplitude_gigavolt_engine_item) or hasazeritetrait(magus_of_the_dead_trait) } } and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and spell(unholy_frenzy) or enemies(tagged=1) >= 2 and { spellcooldown(death_and_decay) <= gcd() and not hastalent(defile_talent) or spellcooldown(defile) <= gcd() and hastalent(defile_talent) } and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and spell(unholy_frenzy) or target.timetodie() < 8 and target.timetodie() > 4 and spell(soul_reaper) or { not false(raid_event_adds_exists) or 600 > 20 } and runecount() <= 1 - buffpresent(unholy_frenzy_buff) and spell(soul_reaper) or spell(unholy_blight)
+ { buffpresent(unholy_strength_buff) and enemies(tagged=1) == 1 or buffremaining(festermight) < gcd() and enemies(tagged=1) == 1 } and boss() and spell(bag_of_tricks) or target.debuffstacks(festering_wound_debuff) >= 4 and { enemies(tagged=1) >= 2 or not azeriteessenceisenabled(vision_of_perfection_essence_id) or not hasazeritetrait(magus_of_the_dead_trait) or azeriteessenceisenabled(vision_of_perfection_essence_id) and { hastalent(unholy_frenzy_talent) and spellcooldown(unholy_frenzy) <= 3 or not hastalent(unholy_frenzy_talent) } } and spell(apocalypse) or { boss() or target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) >= 5 } and spell(dark_transformation) or { azeriteessenceisenabled(vision_of_perfection_essence_id) and spellcooldown(apocalypse) >= spellcooldownduration(apocalypse) - 15 or target.debuffstacks(festering_wound_debuff) < 4 and not azeriteessenceisenabled(vision_of_perfection_essence_id) and { not hasazeritetrait(magus_of_the_dead_trait) or hasazeritetrait(magus_of_the_dead_trait) and spellcooldown(apocalypse) >= spellcooldownduration(apocalypse) - 15 } } and { boss() or target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) >= 5 } and spell(unholy_frenzy) or enemies(tagged=1) >= 2 and { spellcooldown(death_and_decay) <= gcd() and not hastalent(defile_talent) or spellcooldown(defile) <= gcd() and hastalent(defile_talent) } and { boss() or target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) >= 5 } and spell(unholy_frenzy) or target.timetodie() < 8 and target.timetodie() > 4 and spell(soul_reaper) or runecount() <= 1 - buffpresent(unholy_frenzy_buff) and spell(soul_reaper) or spell(unholy_blight)
 }
 
 ### actions.essences
@@ -302,6 +326,8 @@ AddFunction unholyessencesmainactions
 {
  #concentrated_flame,if=dot.concentrated_flame_burn.remains=0
  if not target.debuffremaining(concentrated_flame_burn_debuff) > 0 spell(concentrated_flame_essence)
+ #reaping_flames
+ spell(reaping_flames_essence)
 }
 
 AddFunction unholyessencesmainpostconditions
@@ -310,68 +336,64 @@ AddFunction unholyessencesmainpostconditions
 
 AddFunction unholyessencesshortcdactions
 {
- #blood_of_the_enemy,if=(cooldown.death_and_decay.remains&spell_targets.death_and_decay>1)|(cooldown.defile.remains&spell_targets.defile>1)|(cooldown.apocalypse.remains&cooldown.death_and_decay.ready)&ovale.boss
- if spellcooldown(death_and_decay) > 0 and enemies(tagged=1) > 1 or spellcooldown(defile) > 0 and enemies(tagged=1) > 1 or spellcooldown(apocalypse) > 0 and spellcooldown(death_and_decay) == 0 and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } spell(blood_of_the_enemy)
- #the_unbound_force,if=(buff.reckless_force.up|buff.reckless_force_counter.stack<11)&ovale.boss
- if { buffpresent(reckless_force_buff) or buffstacks(reckless_force_counter_buff) < 11 } and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } spell(the_unbound_force)
+ #blood_of_the_enemy,if=death_and_decay.ticking|pet.apoc_ghoul.active&active_enemies=1
+ if buffpresent(death_and_decay) or spellcooldown(apocalypse) >= spellcooldownduration(apocalypse) - 15 and enemies(tagged=1) == 1 spell(blood_of_the_enemy)
+ #the_unbound_force,if=buff.reckless_force.up|buff.reckless_force_counter.stack<11
+ if buffpresent(reckless_force_buff) or buffstacks(reckless_force_counter_buff) < 11 spell(the_unbound_force)
 
  unless not target.debuffremaining(concentrated_flame_burn_debuff) > 0 and spell(concentrated_flame_essence)
  {
-  #purifying_blast,if=!death_and_decay.ticking&ovale.boss
-  if not buffpresent(death_and_decay) and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } spell(purifying_blast)
-  #worldvein_resonance,if=talent.army_of_the_damned.enabled&essence.vision_of_perfection.minor&buff.unholy_strength.up|essence.vision_of_perfection.minor&pet.apoc_ghoul.active|talent.army_of_the_damned.enabled&pet.apoc_ghoul.active&cooldown.army_of_the_dead.remains>60|talent.army_of_the_damned.enabled&pet.army_ghoul.active&ovale.boss
-  if hastalent(army_of_the_damned_talent) and azeriteessenceisminor(vision_of_perfection_essence_id) and buffpresent(unholy_strength_buff) or azeriteessenceisminor(vision_of_perfection_essence_id) and spellcooldown(apocalypse) >= spellcooldownduration(apocalypse) - 15 or hastalent(army_of_the_damned_talent) and spellcooldown(apocalypse) >= spellcooldownduration(apocalypse) - 15 and 480 > 60 or hastalent(army_of_the_damned_talent) and pet.present() and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } spell(worldvein_resonance_essence)
-  #worldvein_resonance,if=!death_and_decay.ticking&buff.unholy_strength.up&!essence.vision_of_perfection.minor&!talent.army_of_the_damned.enabled|target.time_to_die<cooldown.apocalypse.remains&ovale.boss
-  if not buffpresent(death_and_decay) and buffpresent(unholy_strength_buff) and not azeriteessenceisminor(vision_of_perfection_essence_id) and not hastalent(army_of_the_damned_talent) or target.timetodie() < spellcooldown(apocalypse) and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } spell(worldvein_resonance_essence)
-  #ripple_in_space,if=!death_and_decay.ticking&ovale.boss
-  if not buffpresent(death_and_decay) and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } spell(ripple_in_space_essence)
-  #reaping_flames,if=ovale.boss
-  if target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() spell(reaping_flames_essence)
+  #purifying_blast,if=!death_and_decay.ticking
+  if not buffpresent(death_and_decay) spell(purifying_blast)
+  #worldvein_resonance,if=talent.army_of_the_damned.enabled&essence.vision_of_perfection.minor&buff.unholy_strength.up|essence.vision_of_perfection.minor&pet.apoc_ghoul.active|talent.army_of_the_damned.enabled&pet.apoc_ghoul.active&cooldown.army_of_the_dead.remains>60|talent.army_of_the_damned.enabled&pet.army_ghoul.active
+  if hastalent(army_of_the_damned_talent) and azeriteessenceisminor(vision_of_perfection_essence_id) and buffpresent(unholy_strength_buff) or azeriteessenceisminor(vision_of_perfection_essence_id) and spellcooldown(apocalypse) >= spellcooldownduration(apocalypse) - 15 or hastalent(army_of_the_damned_talent) and spellcooldown(apocalypse) >= spellcooldownduration(apocalypse) - 15 and SpellCooldown(army_of_the_dead) > 60 or hastalent(army_of_the_damned_talent) and pet.present() spell(worldvein_resonance_essence)
+  #worldvein_resonance,if=!death_and_decay.ticking&buff.unholy_strength.up&!essence.vision_of_perfection.minor&!talent.army_of_the_damned.enabled|target.time_to_die<cooldown.apocalypse.remains
+  if not buffpresent(death_and_decay) and buffpresent(unholy_strength_buff) and not azeriteessenceisminor(vision_of_perfection_essence_id) and not hastalent(army_of_the_damned_talent) or target.timetodie() < spellcooldown(apocalypse) spell(worldvein_resonance_essence)
+  #ripple_in_space,if=!death_and_decay.ticking
+  if not buffpresent(death_and_decay) spell(ripple_in_space_essence)
  }
 }
 
 AddFunction unholyessencesshortcdpostconditions
 {
- not target.debuffremaining(concentrated_flame_burn_debuff) > 0 and spell(concentrated_flame_essence)
+ not target.debuffremaining(concentrated_flame_burn_debuff) > 0 and spell(concentrated_flame_essence) or spell(reaping_flames_essence)
 }
 
 AddFunction unholyessencescdactions
 {
- #memory_of_lucid_dreams,if=rune.time_to_1>gcd&runic_power<40&ovale.boss
- if timetorunes(1) > gcd() and runicpower() < 40 and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } spell(memory_of_lucid_dreams_essence)
+ #memory_of_lucid_dreams,if=rune.time_to_1>gcd&runic_power<40
+ if timetorunes(1) > gcd() and runicpower() < 40 spell(memory_of_lucid_dreams_essence)
  #guardian_of_azeroth,if=(cooldown.apocalypse.remains<6&cooldown.army_of_the_dead.remains>cooldown.condensed_lifeforce.remains)|cooldown.army_of_the_dead.remains<2
- if spellcooldown(apocalypse) < 6 and 480 > spellcooldown(condensed_life_force) or 480 < 2 spell(guardian_of_azeroth)
+ if spellcooldown(apocalypse) < 6 and SpellCooldown(army_of_the_dead) > spellcooldown(condensed_life_force) or SpellCooldown(army_of_the_dead) < 2 spell(guardian_of_azeroth)
 
- unless { buffpresent(reckless_force_buff) or buffstacks(reckless_force_counter_buff) < 11 } and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and spell(the_unbound_force)
+ unless { buffpresent(reckless_force_buff) or buffstacks(reckless_force_counter_buff) < 11 } and spell(the_unbound_force)
  {
-  #focused_azerite_beam,if=!death_and_decay.ticking&ovale.boss
-  if not buffpresent(death_and_decay) and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } spell(focused_azerite_beam)
+  #focused_azerite_beam,if=!death_and_decay.ticking
+  if not buffpresent(death_and_decay) spell(focused_azerite_beam)
  }
 }
 
 AddFunction unholyessencescdpostconditions
 {
- { buffpresent(reckless_force_buff) or buffstacks(reckless_force_counter_buff) < 11 } and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and spell(the_unbound_force) or not target.debuffremaining(concentrated_flame_burn_debuff) > 0 and spell(concentrated_flame_essence) or not buffpresent(death_and_decay) and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and spell(purifying_blast) or { hastalent(army_of_the_damned_talent) and azeriteessenceisminor(vision_of_perfection_essence_id) and buffpresent(unholy_strength_buff) or azeriteessenceisminor(vision_of_perfection_essence_id) and spellcooldown(apocalypse) >= spellcooldownduration(apocalypse) - 15 or hastalent(army_of_the_damned_talent) and spellcooldown(apocalypse) >= spellcooldownduration(apocalypse) - 15 and 480 > 60 or hastalent(army_of_the_damned_talent) and pet.present() and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } } and spell(worldvein_resonance_essence) or { not buffpresent(death_and_decay) and buffpresent(unholy_strength_buff) and not azeriteessenceisminor(vision_of_perfection_essence_id) and not hastalent(army_of_the_damned_talent) or target.timetodie() < spellcooldown(apocalypse) and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } } and spell(worldvein_resonance_essence) or not buffpresent(death_and_decay) and { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and spell(ripple_in_space_essence) or { target.classification(normal) and enemies(tagged=1) >= 7 and not isgrouped() or target.classification(elite) and enemies(tagged=1) > 5 or boss() } and spell(reaping_flames_essence)
+ { buffpresent(reckless_force_buff) or buffstacks(reckless_force_counter_buff) < 11 } and spell(the_unbound_force) or not target.debuffremaining(concentrated_flame_burn_debuff) > 0 and spell(concentrated_flame_essence) or not buffpresent(death_and_decay) and spell(purifying_blast) or { hastalent(army_of_the_damned_talent) and azeriteessenceisminor(vision_of_perfection_essence_id) and buffpresent(unholy_strength_buff) or azeriteessenceisminor(vision_of_perfection_essence_id) and spellcooldown(apocalypse) >= spellcooldownduration(apocalypse) - 15 or hastalent(army_of_the_damned_talent) and spellcooldown(apocalypse) >= spellcooldownduration(apocalypse) - 15 and SpellCooldown(army_of_the_dead) > 60 or hastalent(army_of_the_damned_talent) and pet.present() } and spell(worldvein_resonance_essence) or { not buffpresent(death_and_decay) and buffpresent(unholy_strength_buff) and not azeriteessenceisminor(vision_of_perfection_essence_id) and not hastalent(army_of_the_damned_talent) or target.timetodie() < spellcooldown(apocalypse) } and spell(worldvein_resonance_essence) or not buffpresent(death_and_decay) and spell(ripple_in_space_essence) or spell(reaping_flames_essence)
 }
 
 ### actions.generic
 
 AddFunction unholygenericmainactions
 {
- #death_coil,if=buff.sudden_doom.react&!variable.pooling_for_gargoyle|pet.gargoyle.active
- if buffpresent(sudden_doom_buff) and not pooling_for_gargoyle() or pet.present() spell(death_coil)
- #death_coil,if=runic_power.deficit<14&(cooldown.apocalypse.remains>5|debuff.festering_wound.stack>4)&!variable.pooling_for_gargoyle
- if runicpowerdeficit() < 14 and { spellcooldown(apocalypse) > 5 or target.debuffstacks(festering_wound_debuff) > 4 } and not pooling_for_gargoyle() spell(death_coil)
- #defile,if=cooldown.apocalypse.remains
- if spellcooldown(apocalypse) > 0 spell(defile)
- #scourge_strike,if=((debuff.festering_wound.up&cooldown.apocalypse.remains>5)|debuff.festering_wound.stack>4)&(cooldown.army_of_the_dead.remains>5|death_knight.disable_aotd)
- if { target.debuffpresent(festering_wound_debuff) and spellcooldown(apocalypse) > 5 or target.debuffstacks(festering_wound_debuff) > 4 } and { 480 > 5 or true(disable_aotd) } spell(scourge_strike)
- #clawing_shadows,if=((debuff.festering_wound.up&cooldown.apocalypse.remains>5)|debuff.festering_wound.stack>4)&(cooldown.army_of_the_dead.remains>5|death_knight.disable_aotd)
- if { target.debuffpresent(festering_wound_debuff) and spellcooldown(apocalypse) > 5 or target.debuffstacks(festering_wound_debuff) > 4 } and { 480 > 5 or true(disable_aotd) } spell(clawing_shadows)
+ #death_coil,if=buff.sudden_doom.react&rune.time_to_4>gcd&!variable.pooling_for_gargoyle|pet.gargoyle.active
+ if buffpresent(sudden_doom_buff) and timetorunes(4) > gcd() and not pooling_for_gargoyle() or pet.present() spell(death_coil)
+ #death_coil,if=runic_power.deficit<14&rune.time_to_4>gcd&!variable.pooling_for_gargoyle
+ if runicpowerdeficit() < 14 and timetorunes(4) > gcd() and not pooling_for_gargoyle() spell(death_coil)
+ #scourge_strike,if=((debuff.festering_wound.up&(cooldown.apocalypse.remains>5&(!essence.vision_of_perfection.enabled|!talent.unholy_frenzy.enabled)|essence.vision_of_perfection.enabled&talent.unholy_frenzy.enabled&cooldown.unholy_frenzy.remains>6))|debuff.festering_wound.stack>4)&(cooldown.army_of_the_dead.remains>5|death_knight.disable_aotd)
+ if { target.debuffpresent(festering_wound_debuff) and { { spellcooldown(apocalypse) > 5 or not spellknown(apocalypse) } and { not azeriteessenceisenabled(vision_of_perfection_essence_id) or not hastalent(unholy_frenzy_talent) } or azeriteessenceisenabled(vision_of_perfection_essence_id) and hastalent(unholy_frenzy_talent) and spellcooldown(unholy_frenzy) > 6 } or target.debuffstacks(festering_wound_debuff) > 4 } and { SpellCooldown(army_of_the_dead) > 5 or not SpellKnown(army_of_the_dead) or not Boss() } spell(scourge_strike)
+ #clawing_shadows,if=((debuff.festering_wound.up&(cooldown.apocalypse.remains>5&(!essence.vision_of_perfection.enabled|!talent.unholy_frenzy.enabled)|essence.vision_of_perfection.enabled&talent.unholy_frenzy.enabled&cooldown.unholy_frenzy.remains>6))|debuff.festering_wound.stack>4)&(cooldown.army_of_the_dead.remains>5|death_knight.disable_aotd)
+ if { target.debuffpresent(festering_wound_debuff) and { { spellcooldown(apocalypse) > 5 or not spellknown(apocalypse) } and { not azeriteessenceisenabled(vision_of_perfection_essence_id) or not hastalent(unholy_frenzy_talent) } or azeriteessenceisenabled(vision_of_perfection_essence_id) and hastalent(unholy_frenzy_talent) and spellcooldown(unholy_frenzy) > 6 } or target.debuffstacks(festering_wound_debuff) > 4 } and { SpellCooldown(army_of_the_dead) > 5 or not SpellKnown(army_of_the_dead) or not Boss() } spell(clawing_shadows)
  #death_coil,if=runic_power.deficit<20&!variable.pooling_for_gargoyle
  if runicpowerdeficit() < 20 and not pooling_for_gargoyle() spell(death_coil)
- #festering_strike,if=((((debuff.festering_wound.stack<4&!buff.unholy_frenzy.up)|debuff.festering_wound.stack<3)&cooldown.apocalypse.remains<3)|debuff.festering_wound.stack<1)&(cooldown.army_of_the_dead.remains>5|death_knight.disable_aotd)
- if { { target.debuffstacks(festering_wound_debuff) < 4 and not buffpresent(unholy_frenzy_buff) or target.debuffstacks(festering_wound_debuff) < 3 } and spellcooldown(apocalypse) < 3 or target.debuffstacks(festering_wound_debuff) < 1 } and { 480 > 5 or true(disable_aotd) } spell(festering_strike)
+ #festering_strike,if=debuff.festering_wound.stack<4&(cooldown.apocalypse.remains<3&(!essence.vision_of_perfection.enabled|!talent.unholy_frenzy.enabled|essence.vision_of_perfection.enabled&talent.unholy_frenzy.enabled&cooldown.unholy_frenzy.remains<7))|debuff.festering_wound.stack<1&(cooldown.army_of_the_dead.remains>5|death_knight.disable_aotd)
+ if target.debuffstacks(festering_wound_debuff) < 4 and spellcooldown(apocalypse) < 3 and { not azeriteessenceisenabled(vision_of_perfection_essence_id) or not hastalent(unholy_frenzy_talent) or azeriteessenceisenabled(vision_of_perfection_essence_id) and hastalent(unholy_frenzy_talent) and spellcooldown(unholy_frenzy) < 7 } or target.debuffstacks(festering_wound_debuff) < 1 and { SpellCooldown(army_of_the_dead) > 5 or not SpellKnown(army_of_the_dead) or not Boss() } spell(festering_strike)
  #death_coil,if=!variable.pooling_for_gargoyle
  if not pooling_for_gargoyle() spell(death_coil)
 }
@@ -382,16 +404,11 @@ AddFunction unholygenericmainpostconditions
 
 AddFunction unholygenericshortcdactions
 {
- unless { buffpresent(sudden_doom_buff) and not pooling_for_gargoyle() or pet.present() } and spell(death_coil) or runicpowerdeficit() < 14 and { spellcooldown(apocalypse) > 5 or target.debuffstacks(festering_wound_debuff) > 4 } and not pooling_for_gargoyle() and spell(death_coil)
- {
-  #death_and_decay,if=talent.pestilence.enabled&cooldown.apocalypse.remains
-  if hastalent(pestilence_talent) and spellcooldown(apocalypse) > 0 spell(death_and_decay)
- }
 }
 
 AddFunction unholygenericshortcdpostconditions
 {
- { buffpresent(sudden_doom_buff) and not pooling_for_gargoyle() or pet.present() } and spell(death_coil) or runicpowerdeficit() < 14 and { spellcooldown(apocalypse) > 5 or target.debuffstacks(festering_wound_debuff) > 4 } and not pooling_for_gargoyle() and spell(death_coil) or spellcooldown(apocalypse) > 0 and spell(defile) or { target.debuffpresent(festering_wound_debuff) and spellcooldown(apocalypse) > 5 or target.debuffstacks(festering_wound_debuff) > 4 } and { 480 > 5 or true(disable_aotd) } and spell(scourge_strike) or { target.debuffpresent(festering_wound_debuff) and spellcooldown(apocalypse) > 5 or target.debuffstacks(festering_wound_debuff) > 4 } and { 480 > 5 or true(disable_aotd) } and spell(clawing_shadows) or runicpowerdeficit() < 20 and not pooling_for_gargoyle() and spell(death_coil) or { { target.debuffstacks(festering_wound_debuff) < 4 and not buffpresent(unholy_frenzy_buff) or target.debuffstacks(festering_wound_debuff) < 3 } and spellcooldown(apocalypse) < 3 or target.debuffstacks(festering_wound_debuff) < 1 } and { 480 > 5 or true(disable_aotd) } and spell(festering_strike) or not pooling_for_gargoyle() and spell(death_coil)
+ { buffpresent(sudden_doom_buff) and timetorunes(4) > gcd() and not pooling_for_gargoyle() or pet.present() } and spell(death_coil) or runicpowerdeficit() < 14 and timetorunes(4) > gcd() and not pooling_for_gargoyle() and spell(death_coil) or { target.debuffpresent(festering_wound_debuff) and { { spellcooldown(apocalypse) > 5 or not spellknown(apocalypse) } and { not azeriteessenceisenabled(vision_of_perfection_essence_id) or not hastalent(unholy_frenzy_talent) } or azeriteessenceisenabled(vision_of_perfection_essence_id) and hastalent(unholy_frenzy_talent) and spellcooldown(unholy_frenzy) > 6 } or target.debuffstacks(festering_wound_debuff) > 4 } and { SpellCooldown(army_of_the_dead) > 5 or not SpellKnown(army_of_the_dead) or not Boss() } and spell(scourge_strike) or { target.debuffpresent(festering_wound_debuff) and { { spellcooldown(apocalypse) > 5 or not spellknown(apocalypse) } and { not azeriteessenceisenabled(vision_of_perfection_essence_id) or not hastalent(unholy_frenzy_talent) } or azeriteessenceisenabled(vision_of_perfection_essence_id) and hastalent(unholy_frenzy_talent) and spellcooldown(unholy_frenzy) > 6 } or target.debuffstacks(festering_wound_debuff) > 4 } and { SpellCooldown(army_of_the_dead) > 5 or not SpellKnown(army_of_the_dead) or not Boss() } and spell(clawing_shadows) or runicpowerdeficit() < 20 and not pooling_for_gargoyle() and spell(death_coil) or { target.debuffstacks(festering_wound_debuff) < 4 and spellcooldown(apocalypse) < 3 and { not azeriteessenceisenabled(vision_of_perfection_essence_id) or not hastalent(unholy_frenzy_talent) or azeriteessenceisenabled(vision_of_perfection_essence_id) and hastalent(unholy_frenzy_talent) and spellcooldown(unholy_frenzy) < 7 } or target.debuffstacks(festering_wound_debuff) < 1 and { SpellCooldown(army_of_the_dead) > 5 or not SpellKnown(army_of_the_dead) or not Boss() } } and spell(festering_strike) or not pooling_for_gargoyle() and spell(death_coil)
 }
 
 AddFunction unholygenericcdactions
@@ -400,7 +417,7 @@ AddFunction unholygenericcdactions
 
 AddFunction unholygenericcdpostconditions
 {
- { buffpresent(sudden_doom_buff) and not pooling_for_gargoyle() or pet.present() } and spell(death_coil) or runicpowerdeficit() < 14 and { spellcooldown(apocalypse) > 5 or target.debuffstacks(festering_wound_debuff) > 4 } and not pooling_for_gargoyle() and spell(death_coil) or hastalent(pestilence_talent) and spellcooldown(apocalypse) > 0 and spell(death_and_decay) or spellcooldown(apocalypse) > 0 and spell(defile) or { target.debuffpresent(festering_wound_debuff) and spellcooldown(apocalypse) > 5 or target.debuffstacks(festering_wound_debuff) > 4 } and { 480 > 5 or true(disable_aotd) } and spell(scourge_strike) or { target.debuffpresent(festering_wound_debuff) and spellcooldown(apocalypse) > 5 or target.debuffstacks(festering_wound_debuff) > 4 } and { 480 > 5 or true(disable_aotd) } and spell(clawing_shadows) or runicpowerdeficit() < 20 and not pooling_for_gargoyle() and spell(death_coil) or { { target.debuffstacks(festering_wound_debuff) < 4 and not buffpresent(unholy_frenzy_buff) or target.debuffstacks(festering_wound_debuff) < 3 } and spellcooldown(apocalypse) < 3 or target.debuffstacks(festering_wound_debuff) < 1 } and { 480 > 5 or true(disable_aotd) } and spell(festering_strike) or not pooling_for_gargoyle() and spell(death_coil)
+ { buffpresent(sudden_doom_buff) and timetorunes(4) > gcd() and not pooling_for_gargoyle() or pet.present() } and spell(death_coil) or runicpowerdeficit() < 14 and timetorunes(4) > gcd() and not pooling_for_gargoyle() and spell(death_coil) or { target.debuffpresent(festering_wound_debuff) and { { spellcooldown(apocalypse) > 5 or not spellknown(apocalypse) } and { not azeriteessenceisenabled(vision_of_perfection_essence_id) or not hastalent(unholy_frenzy_talent) } or azeriteessenceisenabled(vision_of_perfection_essence_id) and hastalent(unholy_frenzy_talent) and spellcooldown(unholy_frenzy) > 6 } or target.debuffstacks(festering_wound_debuff) > 4 } and { SpellCooldown(army_of_the_dead) > 5 or not SpellKnown(army_of_the_dead) or not Boss() } and spell(scourge_strike) or { target.debuffpresent(festering_wound_debuff) and { { spellcooldown(apocalypse) > 5 or not spellknown(apocalypse) } and { not azeriteessenceisenabled(vision_of_perfection_essence_id) or not hastalent(unholy_frenzy_talent) } or azeriteessenceisenabled(vision_of_perfection_essence_id) and hastalent(unholy_frenzy_talent) and spellcooldown(unholy_frenzy) > 6 } or target.debuffstacks(festering_wound_debuff) > 4 } and { SpellCooldown(army_of_the_dead) > 5 or not SpellKnown(army_of_the_dead) or not Boss() } and spell(clawing_shadows) or runicpowerdeficit() < 20 and not pooling_for_gargoyle() and spell(death_coil) or { target.debuffstacks(festering_wound_debuff) < 4 and spellcooldown(apocalypse) < 3 and { not azeriteessenceisenabled(vision_of_perfection_essence_id) or not hastalent(unholy_frenzy_talent) or azeriteessenceisenabled(vision_of_perfection_essence_id) and hastalent(unholy_frenzy_talent) and spellcooldown(unholy_frenzy) < 7 } or target.debuffstacks(festering_wound_debuff) < 1 and { SpellCooldown(army_of_the_dead) > 5 or not SpellKnown(army_of_the_dead) or not Boss() } } and spell(festering_strike) or not pooling_for_gargoyle() and spell(death_coil)
 }
 
 ### actions.precombat
@@ -429,11 +446,6 @@ AddFunction unholyprecombatshortcdpostconditions
 
 AddFunction unholyprecombatcdactions
 {
- unless spell(raise_dead)
- {
-  #army_of_the_dead,delay=2
-  spell(army_of_the_dead)
- }
 }
 
 AddFunction unholyprecombatcdpostconditions

@@ -380,6 +380,10 @@ __exports.Emiter = __class(nil, {
                     annotation[action] = className
                     annotation.interrupt = className
                     isSpellAction = false
+                elseif className == "DEATHKNIGHT" and action == "epidemic" then
+                    local debuffName = "virulent_plague_debuff"
+                    self:AddSymbol(annotation, debuffName)
+                    conditionCode = format("DebuffCountOnAny(%s) > 1", debuffName)
                 elseif className == "DRUID" and action == "pulverize" then
                     local debuffName = "thrash_bear_debuff"
                     self:AddSymbol(annotation, debuffName)
@@ -1904,7 +1908,9 @@ __exports.Emiter = __class(nil, {
                 code = format("BuffPresent(%s)", buffName)
                 self:AddSymbol(annotation, buffName)
             elseif operand == "ovale.boss" then
-                code = "(target.Classification(normal) and Enemies(tagged=1) >= 7 and not IsGrouped()) or (target.Classification(elite) and Enemies(tagged=1) >= 5) or Boss()"
+                code = "Boss()"
+            elseif operand == "ovale.aoenuke" then
+                code = "(target.Classification(normal) and Enemies(tagged=1) >= 7 and not IsGrouped()) or (target.Classification(elite) and Enemies(tagged=1) >= 5)"
             elseif operand == "ovale.mouseover" then
                 code = "mouseover.Present() and mouseover.HealthPercent() < 100 and not mouseover.IsFriend()"
             elseif operand == "ovale.movement" then
@@ -1931,6 +1937,9 @@ __exports.Emiter = __class(nil, {
                 code = "True(disable_aotd)"
             elseif className == "DEATHKNIGHT" and operand == "pet.apoc_ghoul.active" then
                 code = "SpellCooldown(apocalypse) >= SpellCooldownDuration(apocalypse) - 15"
+            elseif className == "DEATHKNIGHT" and operand == "death_knight.fwounded_targets" then
+                code = "DebuffCountOnAny(festering_wound_debuff)"
+                self:AddSymbol(annotation, "festering_wound_debuff")
             elseif className == "DEMONHUNTER" and operand == "buff.metamorphosis.extended_by_demonic" then
                 code = "not BuffExpires(extended_by_demonic_buff)"
             elseif className == "DEMONHUNTER" and operand == "cooldown.chaos_blades.ready" then

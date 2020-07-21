@@ -16,16 +16,17 @@ AddIcon
 	Texture(spell_frost_frostnova) # Frost Nova
 	Texture(spell_frost_frozenorb) # Frozen Orb
 	Texture(spell_frost_icestorm) # Blizzard
-	
+	Texture(spell_frost_iceshock) # Counterspell
+
 	# Buffs
 	Texture(spell_frost_coldhearted) # Icy Veins
 	Texture(spell_ice_lament) # Ice Barrier
 	Texture(spell_holy_magicalsentry) # Arcane Intellect
 	Texture(spell_arcane_arcane02) # Spellsteal
-	
+
 	# Items
 	Texture(inv_jewelry_talisman_12) # Link to a trinket macro
-	
+
 	# Heart of Azeroth Skills
 	Texture(spell_azerite_essence_15) # Concentrated Flame
 	Texture(spell_azerite_essence05) # Memory of Lucid Dreams
@@ -73,36 +74,36 @@ AddIcon
 	Texture(ability_racial_regeneratin) # Regeneratin (Zandalari Trolls)
 	Texture(ability_racial_hyperorganiclightoriginator) # Hyper Organic Light Originator (Mechagnome)
 	Texture(ability_racial_bagoftricks) # Bag of Tricks (Vulpera)
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 ]]
 

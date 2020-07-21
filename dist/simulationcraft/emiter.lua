@@ -380,6 +380,10 @@ __exports.Emiter = __class(nil, {
                     annotation[action] = className
                     annotation.interrupt = className
                     isSpellAction = false
+                elseif className == "DEATHKNIGHT" and action == "epidemic" then
+                    local debuffName = "virulent_plague_debuff"
+                    self:AddSymbol(annotation, debuffName)
+                    conditionCode = format("DebuffCountOnAny(%s) > 1", debuffName)
                 elseif className == "DRUID" and action == "pulverize" then
                     local debuffName = "thrash_bear_debuff"
                     self:AddSymbol(annotation, debuffName)
@@ -458,6 +462,8 @@ __exports.Emiter = __class(nil, {
                     conditionCode = "Mana() > ManaCost(arcane_blast)"
                 elseif className == "MAGE" and action == "cone_of_cold" then
                     conditionCode = "target.Distance() < 12"
+                elseif className == "MAGE" and action == "arcane_explosion" then
+                    conditionCode = "target.Distance() < 10"
                 elseif className == "MONK" and action == "chi_sphere" then
                     isSpellAction = false
                 elseif className == "MONK" and action == "gift_of_the_ox" then
@@ -658,10 +664,10 @@ __exports.Emiter = __class(nil, {
                         if name then
                             local functionName = OvaleFunctionName(name, annotation)
                             bodyCode = functionName .. "()"
-                            if className == "MAGE" and specialization == "arcane" and (name == "burn" or name == "init_burn") then
-                                conditionCode = "CheckBoxOn(opt_arcane_mage_burn_phase)"
-                                annotation.opt_arcane_mage_burn_phase = className
-                            end
+                            -- if className == "MAGE" and specialization == "arcane" and (name == "burn" or name == "init_burn") then
+                            --     conditionCode = "CheckBoxOn(opt_arcane_mage_burn_phase)"
+                            --     annotation.opt_arcane_mage_burn_phase = className
+                            -- end
                         end
                         isSpellAction = false
                     end
@@ -1902,11 +1908,15 @@ __exports.Emiter = __class(nil, {
                 code = format("BuffPresent(%s)", buffName)
                 self:AddSymbol(annotation, buffName)
             elseif operand == "ovale.boss" then
-                code = "(target.Classification(normal) and Enemies(tagged=1) >= 7 and not IsGrouped()) or (target.Classification(elite) and Enemies(tagged=1) > 5) or Boss()"
+                code = "Boss()"
+            elseif operand == "ovale.aoenuke" then
+                code = "(target.Classification(normal) and Enemies(tagged=1) >= 7 and not IsGrouped()) or (target.Classification(elite) and Enemies(tagged=1) >= 5)"
             elseif operand == "ovale.mouseover" then
                 code = "mouseover.Present() and mouseover.HealthPercent() < 100 and not mouseover.IsFriend()"
             elseif operand == "ovale.movement" then
                 code = "(Speed() == 0 or BuffPresent(movement_allowed_buff))"
+            elseif operand == "ovale.speed" then
+                code = "Speed() == 0"
             elseif className == "DEATHKNIGHT" and sub(operand, 1, 24) == "pet.dancing_rune_weapon." then
                 local petOperand = sub(operand, 25)
                 local tokenIterator = gmatch(petOperand, OPERAND_TOKEN_PATTERN)
@@ -1927,6 +1937,9 @@ __exports.Emiter = __class(nil, {
                 code = "True(disable_aotd)"
             elseif className == "DEATHKNIGHT" and operand == "pet.apoc_ghoul.active" then
                 code = "SpellCooldown(apocalypse) >= SpellCooldownDuration(apocalypse) - 15"
+            elseif className == "DEATHKNIGHT" and operand == "death_knight.fwounded_targets" then
+                code = "DebuffCountOnAny(festering_wound_debuff)"
+                self:AddSymbol(annotation, "festering_wound_debuff")
             elseif className == "DEMONHUNTER" and operand == "buff.metamorphosis.extended_by_demonic" then
                 code = "not BuffExpires(extended_by_demonic_buff)"
             elseif className == "DEMONHUNTER" and operand == "cooldown.chaos_blades.ready" then

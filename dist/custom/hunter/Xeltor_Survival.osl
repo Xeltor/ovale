@@ -259,6 +259,7 @@ AddFunction SurvivalDefaultCdActions
         {
          #arcane_torrent
          Spell(arcane_torrent_focus)
+				 Spell(bag_of_tricks)
         }
        }
       }

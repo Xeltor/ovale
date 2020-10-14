@@ -2,9 +2,8 @@ local __exports = LibStub:NewLibrary("ovale/scripts/ovale_common", 80300)
 if not __exports then return end
 __exports.registerCommon = function(OvaleScripts)
     local name = "ovale_common"
-    local desc = "[8.2] Ovale: Common spell definitions"
+    local desc = "[9.0] Ovale: Common spell definitions"
     local code = [[
-# Common spell definitions shared by all classes and specializations.
 
 ###
 ### Potions
@@ -234,6 +233,7 @@ Define(conductive_ink_debuff 302565)
 
 Define(anima_of_death_essence 294926)
     SpellInfo(anima_of_death_essence tag=cd)
+# Essences
 Define(concentrated_flame_essence 295373)
     SpellInfo(concentrated_flame_essence cd=30 tag=main)
 Define(concentrated_flame_burn_debuff 295368)

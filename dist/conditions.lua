@@ -10,6 +10,7 @@ local Compare = __Condition.Compare
 local TestBoolean = __Condition.TestBoolean
 local isComparator = __Condition.isComparator
 local ReturnValue = __Condition.ReturnValue
+local ReturnConstant = __Condition.ReturnConstant
 local ipairs = ipairs
 local pairs = pairs
 local type = type
@@ -49,8 +50,8 @@ local __AST = LibStub:GetLibrary("ovale/AST")
 local isNodeType = __AST.isNodeType
 local lower = string.lower
 local upper = string.upper
-local __Ovale = LibStub:GetLibrary("ovale/Ovale")
-local Print = __Ovale.Print
+local __tools = LibStub:GetLibrary("ovale/tools")
+local OneTimeMessage = __tools.OneTimeMessage
 local INFINITY = huge
 local function BossArmorDamageReduction(target)
     return 0.3
@@ -94,7 +95,7 @@ __exports.OvaleConditions = __class(nil, {
     end,
     GetDiseases = function(self, target, atTime)
         local npAura, bpAura, ffAura
-        local talented = (self.OvaleSpellBook:GetTalentPoints(NECROTIC_PLAGUE_TALENT) > 0)
+        local talented = self.OvaleSpellBook:GetTalentPoints(NECROTIC_PLAGUE_TALENT) > 0
         if talented then
             npAura = self.OvaleAura:GetAura(target, NECROTIC_PLAGUE_DEBUFF, atTime, "HARMFUL", true)
         else
@@ -141,9 +142,9 @@ __exports.OvaleConditions = __class(nil, {
             end
         else
             local powerInfo = self.OvalePower.POWER_INFO[powerType]
-            local powerMax = powerInfo and UnitPowerMax(target, powerInfo.id, powerInfo.segments) or 0
+            local powerMax = (powerInfo and UnitPowerMax(target, powerInfo.id, powerInfo.segments)) or 0
             if powerMax > 0 then
-                local power = powerInfo and UnitPower(target, powerInfo.id) or 0
+                local power = (powerInfo and UnitPower(target, powerInfo.id)) or 0
                 local value = powerMax - power
                 return Compare(value, comparator, limit)
             end
@@ -159,7 +160,7 @@ __exports.OvaleConditions = __class(nil, {
                 local conversion = 100 / powerMax
                 local power = self.OvalePower.next.power[powerType] or 0
                 local value, origin, rate = power * conversion, atTime, self.OvalePower:getPowerRateAt(self.OvalePower.next, powerType, atTime) * conversion
-                if rate > 0 and value >= 100 or rate < 0 and value == 0 then
+                if (rate > 0 and value >= 100) or (rate < 0 and value == 0) then
                     rate = 0
                 end
                 local start, ending = atTime, INFINITY
@@ -167,10 +168,10 @@ __exports.OvaleConditions = __class(nil, {
             end
         else
             local powerInfo = self.OvalePower.POWER_INFO[powerType]
-            local powerMax = powerInfo and UnitPowerMax(target, powerInfo.id, powerInfo.segments) or 0
+            local powerMax = (powerInfo and UnitPowerMax(target, powerInfo.id, powerInfo.segments)) or 0
             if powerMax > 0 then
                 local conversion = 100 / powerMax
-                local value = powerInfo and UnitPower(target, powerInfo.id) * conversion or 0
+                local value = (powerInfo and UnitPower(target, powerInfo.id) * conversion) or 0
                 return Compare(value, comparator, limit)
             end
         end
@@ -180,8 +181,8 @@ __exports.OvaleConditions = __class(nil, {
         local spell, comparator, limit = positionalParams[1], positionalParams[2], positionalParams[3]
         local spellId = self.OvaleSpellBook:getKnownSpellId(spell)
         local target = self:ParseCondition(positionalParams, namedParams, "target")
-        local maxCost = (namedParams.max == 1)
-        local value = spellId and self.OvalePower:PowerCost(spellId, powerType, atTime, target, maxCost) or 0
+        local maxCost = namedParams.max == 1
+        local value = (spellId and self.OvalePower:PowerCost(spellId, powerType, atTime, target, maxCost)) or 0
         return Compare(value, comparator, limit)
     end,
     Snapshot = function(self, statName, defaultValue, positionalParams, namedParams, atTime)
@@ -241,12 +242,11 @@ __exports.OvaleConditions = __class(nil, {
     ParseCondition = function(self, positionalParams, namedParams, defaultTarget)
         return self.ovaleCondition:ParseCondition(positionalParams, namedParams, defaultTarget)
     end,
-    constructor = function(self, ovaleCondition, OvaleData, OvaleCompile, OvalePaperDoll, Ovale, OvaleArtifact, OvaleAzerite, OvaleAzeriteEssence, OvaleAura, baseState, OvaleCooldown, OvaleFuture, OvaleSpellBook, OvaleFrameModule, OvaleGUID, OvaleDamageTaken, OvaleWarlock, OvalePower, OvaleEnemies, variables, lastSpell, OvaleEquipment, OvaleHealth, ovaleOptions, OvaleLossOfControl, OvaleSpellDamage, OvaleStagger, OvaleTotem, OvaleSigil, OvaleDemonHunterSoulFragments, OvaleBestAction, OvaleRunes, OvaleStance, OvaleBossMod, OvaleSpells)
+    constructor = function(self, ovaleCondition, OvaleData, OvaleCompile, OvalePaperDoll, OvaleArtifact, OvaleAzerite, OvaleAzeriteEssence, OvaleAura, baseState, OvaleCooldown, OvaleFuture, OvaleSpellBook, OvaleFrameModule, OvaleGUID, OvaleDamageTaken, OvaleWarlock, OvalePower, OvaleEnemies, variables, lastSpell, OvaleEquipment, OvaleHealth, ovaleOptions, OvaleLossOfControl, OvaleSpellDamage, OvaleStagger, OvaleTotem, OvaleSigil, OvaleDemonHunterSoulFragments, OvaleBestAction, OvaleRunes, OvaleStance, OvaleBossMod, OvaleSpells)
         self.ovaleCondition = ovaleCondition
         self.OvaleData = OvaleData
         self.OvaleCompile = OvaleCompile
         self.OvalePaperDoll = OvalePaperDoll
-        self.Ovale = Ovale
         self.OvaleArtifact = OvaleArtifact
         self.OvaleAzerite = OvaleAzerite
         self.OvaleAzeriteEssence = OvaleAzeriteEssence
@@ -278,14 +278,14 @@ __exports.OvaleConditions = __class(nil, {
         self.OvaleBossMod = OvaleBossMod
         self.OvaleSpells = OvaleSpells
         self.ArmorSetBonus = function(positionalParams, namedParams, atTime)
-            self.Ovale:OneTimeMessage("Warning: 'ArmorSetBonus()' is depreciated.  Returns 0")
+            OneTimeMessage("Warning: 'ArmorSetBonus()' is depreciated.  Returns 0")
             local value = 0
             return 0, INFINITY, value, 0, 0
         end
         self.ArmorSetParts = function(positionalParams, namedParams, atTime)
             local _, comparator, limit = positionalParams[1], positionalParams[2], positionalParams[3]
             local value = 0
-            self.Ovale:OneTimeMessage("Warning: 'ArmorSetBonus()' is depreciated.  Returns 0")
+            OneTimeMessage("Warning: 'ArmorSetBonus()' is depreciated.  Returns 0")
             return Compare(value, comparator, limit)
         end
         self.ArtifactTraitRank = function(positionalParams, namedParams, atTime)
@@ -331,7 +331,7 @@ __exports.OvaleConditions = __class(nil, {
         self.BaseDuration = function(positionalParams, namedParams, atTime)
             local auraId, comparator, limit = positionalParams[1], positionalParams[2], positionalParams[3]
             local value = 0
-            if (self.OvaleData.buffSpellList[auraId]) then
+            if self.OvaleData.buffSpellList[auraId] then
                 local spellList = self.OvaleData.buffSpellList[auraId]
                 for id in pairs(spellList) do
                     value = self.OvaleAura:GetBaseDuration(id, self.OvalePaperDoll.next)
@@ -370,7 +370,7 @@ __exports.OvaleConditions = __class(nil, {
             local aura = self.OvaleAura:GetAura(target, auraId, atTime, filter, mine)
             if aura and self.OvaleAura:IsActiveAura(aura, atTime) then
                 local gain, start, ending = aura.gain, aura.start, aura.ending
-                local value = aura and aura.combopoints or 0
+                local value = (aura and aura.combopoints) or 0
                 return TestValue(gain, ending, value, start, 0, comparator, limit)
             end
             return Compare(0, comparator, limit)
@@ -418,8 +418,8 @@ __exports.OvaleConditions = __class(nil, {
         self.BuffCountOnAny = function(positionalParams, namedParams, atTime)
             local auraId, comparator, limit = positionalParams[1], positionalParams[2], positionalParams[3]
             local _, filter, mine = self:ParseCondition(positionalParams, namedParams)
-            local excludeUnitId = (namedParams.excludeTarget == 1) and self.baseState.next.defaultTarget or nil
-            local fractional = (namedParams.count == 0) and true or false
+            local excludeUnitId = (namedParams.excludeTarget == 1 and self.baseState.next.defaultTarget) or nil
+            local fractional = (namedParams.count == 0 and true) or false
             local count, _, startChangeCount, endingChangeCount, startFirst, endingLast = self.OvaleAura:AuraCount(auraId, filter, mine, namedParams.stacks, atTime, excludeUnitId)
             if count > 0 and startChangeCount < INFINITY and fractional then
                 local origin = startChangeCount
@@ -519,7 +519,7 @@ __exports.OvaleConditions = __class(nil, {
         self.BuffRemainingOnAny = function(positionalParams, namedParams, atTime)
             local auraId, comparator, limit = positionalParams[1], positionalParams[2], positionalParams[3]
             local _, filter, mine = self:ParseCondition(positionalParams, namedParams)
-            local excludeUnitId = (namedParams.excludeTarget == 1) and self.baseState.next.defaultTarget or nil
+            local excludeUnitId = (namedParams.excludeTarget == 1 and self.baseState.next.defaultTarget) or nil
             local count, _, _, _, startFirst, endingLast = self.OvaleAura:AuraCount(auraId, filter, mine, namedParams.stacks, atTime, excludeUnitId)
             if count > 0 then
                 local start, ending = startFirst, endingLast
@@ -547,7 +547,7 @@ __exports.OvaleConditions = __class(nil, {
         self.BuffStacksOnAny = function(positionalParams, namedParams, atTime)
             local auraId, comparator, limit = positionalParams[1], positionalParams[2], positionalParams[3]
             local _, filter, mine = self:ParseCondition(positionalParams, namedParams)
-            local excludeUnitId = (namedParams.excludeTarget == 1) and self.baseState.next.defaultTarget or nil
+            local excludeUnitId = (namedParams.excludeTarget == 1 and self.baseState.next.defaultTarget) or nil
             local count, stacks, _, endingChangeCount, startFirst = self.OvaleAura:AuraCount(auraId, filter, mine, 1, atTime, excludeUnitId)
             if count > 0 then
                 local start, ending = startFirst, endingChangeCount
@@ -573,7 +573,7 @@ __exports.OvaleConditions = __class(nil, {
             local spellId, comparator, limit = positionalParams[1], positionalParams[2], positionalParams[3]
             local castTime = self.OvaleSpellBook:GetCastTime(spellId) or 0
             local gcd = self.OvaleFuture:GetGCD()
-            local t = (castTime > gcd) and castTime or gcd
+            local t = (castTime > gcd and castTime) or gcd
             return Compare(t, comparator, limit)
         end
         self.Casting = function(positionalParams, namedParams, atTime)
@@ -610,7 +610,7 @@ __exports.OvaleConditions = __class(nil, {
                 elseif spellId == "helpful" and self.OvaleSpellBook:IsHelpfulSpell(spellId) then
                     return start, ending
                 elseif spellId == castSpellId then
-                    Print("%f %f %d %s => %d (%f)", start, ending, castSpellId, castSpellName, spellId, self.baseState.next.currentTime)
+                    OneTimeMessage("%f %f %d %s => %d (%f)", start, ending, castSpellId, castSpellName, spellId, self.baseState.next.currentTime)
                     return start, ending
                 elseif type(spellId) == "number" and self.OvaleSpellBook:GetSpellName(spellId) == castSpellName then
                     return start, ending
@@ -643,7 +643,7 @@ __exports.OvaleConditions = __class(nil, {
             else
                 _, classToken = UnitClass(target)
             end
-            local boolean = (classToken == upper(className))
+            local boolean = classToken == upper(className)
             return TestBoolean(boolean, yesno)
         end
         self.Classification = function(positionalParams, namedParams, atTime)
@@ -667,7 +667,7 @@ __exports.OvaleConditions = __class(nil, {
                     -- end
                 end
             end
-            local boolean = (targetClassification == classification)
+            local boolean = targetClassification == classification
             return TestBoolean(boolean, yesno)
         end
         self.Counter = function(positionalParams, namedParams, atTime)
@@ -680,7 +680,7 @@ __exports.OvaleConditions = __class(nil, {
             local target = self:ParseCondition(positionalParams, namedParams)
             local family = UnitCreatureFamily(target)
             local lookupTable = LibBabbleCreatureType and LibBabbleCreatureType:GetLookupTable()
-            local boolean = (lookupTable and family == lookupTable[name])
+            local boolean = lookupTable and family == lookupTable[name]
             return TestBoolean(boolean, yesno)
         end
         self.CreatureType = function(positionalParams, namedParams, atTime)
@@ -771,7 +771,7 @@ __exports.OvaleConditions = __class(nil, {
                 end
                 impsSpawned = impsSpawned + soulshards
             end
-            local talented = (self.OvaleSpellBook:GetTalentPoints(INNER_DEMONS_TALENT) > 0)
+            local talented = self.OvaleSpellBook:GetTalentPoints(INNER_DEMONS_TALENT) > 0
             if talented then
                 local value = self.OvaleWarlock:GetRemainingDemonDuration(WILD_IMP_INNER_DEMONS, atTime + delay)
                 if value <= 0 then
@@ -788,7 +788,7 @@ __exports.OvaleConditions = __class(nil, {
             if talented and npAura and self.OvaleAura:IsActiveAura(npAura, atTime) then
                 aura = npAura
             elseif  not talented and bpAura and self.OvaleAura:IsActiveAura(bpAura, atTime) and ffAura and self.OvaleAura:IsActiveAura(ffAura, atTime) then
-                aura = (bpAura.ending < ffAura.ending) and bpAura or ffAura
+                aura = (bpAura.ending < ffAura.ending and bpAura) or ffAura
             end
             if aura then
                 local gain, _, ending = aura.gain, aura.start, aura.ending
@@ -803,8 +803,8 @@ __exports.OvaleConditions = __class(nil, {
             if talented and npAura then
                 gain, ending = npAura.gain, npAura.start, npAura.ending
             elseif  not talented and bpAura and ffAura then
-                gain = (bpAura.gain > ffAura.gain) and bpAura.gain or ffAura.gain
-                ending = (bpAura.ending < ffAura.ending) and bpAura.ending or ffAura.ending
+                gain = (bpAura.gain > ffAura.gain and bpAura.gain) or ffAura.gain
+                ending = (bpAura.ending < ffAura.ending and bpAura.ending) or ffAura.ending
             end
             if gain and ending and ending > gain then
                 return gain, ending
@@ -820,7 +820,7 @@ __exports.OvaleConditions = __class(nil, {
             elseif  not talented and (bpAura or ffAura) then
                 aura = bpAura or ffAura
                 if bpAura and ffAura then
-                    aura = (bpAura.ending > ffAura.ending) and bpAura or ffAura
+                    aura = (bpAura.ending > ffAura.ending and bpAura) or ffAura
                 end
             end
             if aura then
@@ -834,7 +834,7 @@ __exports.OvaleConditions = __class(nil, {
         self.Distance = function(positionalParams, namedParams, atTime)
             local comparator, limit = positionalParams[1], positionalParams[2]
             local target = self:ParseCondition(positionalParams, namedParams)
-            local value = LibRangeCheck and LibRangeCheck:GetRange(target) or 0
+            local value = (LibRangeCheck and LibRangeCheck:GetRange(target)) or 0
             return Compare(value, comparator, limit)
         end
         self.Enemies = function(positionalParams, namedParams, atTime)
@@ -847,7 +847,7 @@ __exports.OvaleConditions = __class(nil, {
                 elseif namedParams.tagged == 1 then
                     useTagged = true
                 end
-                value = useTagged and self.OvaleEnemies.next.taggedEnemies or self.OvaleEnemies.next.activeEnemies
+                value = (useTagged and self.OvaleEnemies.next.taggedEnemies) or self.OvaleEnemies.next.activeEnemies
             end
             if value < 1 then
                 value = 1
@@ -889,7 +889,7 @@ __exports.OvaleConditions = __class(nil, {
             local power = 0
             local castTime = self.OvaleSpellBook:GetCastTime(spellId) or 0
             local gcd = self.OvaleFuture:GetGCD()
-            local castSeconds = (castTime > gcd) and castTime or gcd
+            local castSeconds = (castTime > gcd and castTime) or gcd
             power = power + regenRate * castSeconds
             local aura = self.OvaleAura:GetAura("player", STEADY_FOCUS, atTime, "HELPFUL", true)
             if aura then
@@ -988,7 +988,7 @@ __exports.OvaleConditions = __class(nil, {
             if health > 0 then
                 local now = GetTime()
                 local timeToDie = self.OvaleHealth:UnitTimeToDie(target)
-                local value, origin, rate = health, now, -1 * health / timeToDie
+                local value, origin, rate = health, now, (-1 * health) / timeToDie
                 local start, ending = now, INFINITY
                 return TestValue(start, ending, value, origin, rate, comparator, limit)
             end
@@ -1000,7 +1000,7 @@ __exports.OvaleConditions = __class(nil, {
             local health = self.OvaleHealth:UnitHealth(target) + self.OvaleHealth:UnitAbsorb(target) - self.OvaleHealth:UnitHealAbsorb(target) or 0
             local now = GetTime()
             local timeToDie = self.OvaleHealth:UnitTimeToDie(target)
-            local value, origin, rate = health, now, -1 * health / timeToDie
+            local value, origin, rate = health, now, (-1 * health) / timeToDie
             local start, ending = now, INFINITY
             return TestValue(start, ending, value, origin, rate, comparator, limit)
         end
@@ -1026,9 +1026,9 @@ __exports.OvaleConditions = __class(nil, {
             if health > 0 then
                 local now = GetTime()
                 local maxHealth = self.OvaleHealth:UnitHealthMax(target) or 1
-                local healthPercent = health / maxHealth * 100
+                local healthPercent = (health / maxHealth) * 100
                 local timeToDie = self.OvaleHealth:UnitTimeToDie(target)
-                local value, origin, rate = healthPercent, now, -1 * healthPercent / timeToDie
+                local value, origin, rate = healthPercent, now, (-1 * healthPercent) / timeToDie
                 local start, ending = now, INFINITY
                 return TestValue(start, ending, value, origin, rate, comparator, limit)
             end
@@ -1040,9 +1040,9 @@ __exports.OvaleConditions = __class(nil, {
             local health = self.OvaleHealth:UnitHealth(target) + self.OvaleHealth:UnitAbsorb(target) - self.OvaleHealth:UnitHealAbsorb(target) or 0
             local now = GetTime()
             local maxHealth = self.OvaleHealth:UnitHealthMax(target) or 1
-            local healthPercent = health / maxHealth * 100
+            local healthPercent = (health / maxHealth) * 100
             local timeToDie = self.OvaleHealth:UnitTimeToDie(target)
-            local value, origin, rate = healthPercent, now, -1 * healthPercent / timeToDie
+            local value, origin, rate = healthPercent, now, (-1 * healthPercent) / timeToDie
             local start, ending = now, INFINITY
             return TestValue(start, ending, value, origin, rate, comparator, limit)
         end
@@ -1067,11 +1067,11 @@ __exports.OvaleConditions = __class(nil, {
             local health = self.OvaleHealth:UnitHealth(target) or 0
             if health > 0 then
                 local maxHealth = self.OvaleHealth:UnitHealthMax(target) or 1
-                local healthPercent = health / maxHealth * 100
+                local healthPercent = (health / maxHealth) * 100
                 if healthPercent >= percent then
                     local now = GetTime()
                     local timeToDie = self.OvaleHealth:UnitTimeToDie(target)
-                    local t = timeToDie * (healthPercent - percent) / healthPercent
+                    local t = (timeToDie * (healthPercent - percent)) / healthPercent
                     local value, origin, rate = t, now, -1
                     local start, ending = now, now + t
                     return TestValue(start, ending, value, origin, rate, comparator, limit)
@@ -1079,14 +1079,9 @@ __exports.OvaleConditions = __class(nil, {
             end
             return Compare(0, comparator, limit)
         end
-        self.InCombat = function(positionalParams, namedParams, atTime)
-            local yesno = positionalParams[1]
-            local boolean = self.OvaleFuture:IsInCombat(atTime)
-            return TestBoolean(boolean, yesno)
-        end
         self.InFlightToTarget = function(positionalParams, namedParams, atTime)
             local spellId, yesno = positionalParams[1], positionalParams[2]
-            local boolean = (self.OvaleFuture.next.currentCast.spellId == spellId) or self.OvaleFuture:InFlight(spellId)
+            local boolean = self.OvaleFuture.next.currentCast.spellId == spellId or self.OvaleFuture:InFlight(spellId)
             return TestBoolean(boolean, yesno)
         end
         self.InRange = function(positionalParams, namedParams, atTime)
@@ -1214,13 +1209,13 @@ __exports.OvaleConditions = __class(nil, {
                 name = self.OvaleSpellBook:GetSpellName(name)
             end
             local targetName = UnitName(target)
-            local boolean = (name == targetName)
+            local boolean = name == targetName
             return TestBoolean(boolean, yesno)
         end
         self.PTR = function(positionalParams, namedParams, atTime)
             local comparator, limit = positionalParams[1], positionalParams[2]
             local version, _, _, uiVersion = GetBuildInfo()
-            local value = (version > "8.2.5" or uiVersion > 80205) and 1 or 0
+            local value = ((version > "8.2.5" or uiVersion > 80205) and 1) or 0
             return Compare(value, comparator, limit)
         end
         self.PersistentMultiplier = function(positionalParams, namedParams, atTime)
@@ -1405,22 +1400,22 @@ __exports.OvaleConditions = __class(nil, {
             local count = namedParams.count
             local boolean
             if count and count > 1 then
-                boolean = (spellId == self.OvaleFuture.next.lastGCDSpellIds[#self.OvaleFuture.next.lastGCDSpellIds - count + 2])
+                boolean = spellId == self.OvaleFuture.next.lastGCDSpellIds[#self.OvaleFuture.next.lastGCDSpellIds - count + 2]
             else
-                boolean = (spellId == self.OvaleFuture.next.lastGCDSpellId)
+                boolean = spellId == self.OvaleFuture.next.lastGCDSpellId
             end
             return TestBoolean(boolean, yesno)
         end
         self.PreviousOffGCDSpell = function(positionalParams, namedParams, atTime)
             local spell, yesno = positionalParams[1], positionalParams[2]
             local spellId = self.OvaleSpellBook:getKnownSpellId(spell)
-            local boolean = (spellId == self.OvaleFuture.next.lastOffGCDSpellcast.spellId)
+            local boolean = spellId == self.OvaleFuture.next.lastOffGCDSpellcast.spellId
             return TestBoolean(boolean, yesno)
         end
         self.PreviousSpell = function(positionalParams, namedParams, atTime)
             local spell, yesno = positionalParams[1], positionalParams[2]
             local spellId = self.OvaleSpellBook:getKnownSpellId(spell)
-            local boolean = (spellId == self.OvaleFuture.next.lastGCDSpellId)
+            local boolean = spellId == self.OvaleFuture.next.lastGCDSpellId
             return TestBoolean(boolean, yesno)
         end
         self.RelativeLevel = function(positionalParams, namedParams, atTime)
@@ -1557,7 +1552,7 @@ __exports.OvaleConditions = __class(nil, {
         self.Speed = function(positionalParams, namedParams, atTime)
             local comparator, limit = positionalParams[1], positionalParams[2]
             local target = self:ParseCondition(positionalParams, namedParams)
-            local value = GetUnitSpeed(target) * 100 / 7
+            local value = (GetUnitSpeed(target) * 100) / 7
             return Compare(value, comparator, limit)
         end
         self.SpellChargeCooldown = function(positionalParams, namedParams, atTime)
@@ -1595,7 +1590,7 @@ __exports.OvaleConditions = __class(nil, {
         end
         self.SpellCooldown = function(positionalParams, namedParams, atTime)
             local comparator, limit
-            local usable = (namedParams.usable == 1)
+            local usable = namedParams.usable == 1
             local target = self:ParseCondition(positionalParams, namedParams, "target")
             local targetGuid = self.OvaleGUID:UnitGUID(target)
             if  not targetGuid then
@@ -1617,9 +1612,6 @@ __exports.OvaleConditions = __class(nil, {
                     end
                 end
             end
-            -- if not comparator or limit == nil then
-            --     return
-            -- end
             if earliest == INFINITY then
                 return Compare(0, comparator, limit)
             elseif earliest > 0 then
@@ -1702,7 +1694,7 @@ __exports.OvaleConditions = __class(nil, {
             if aura and self.OvaleAura:IsActiveAura(aura, atTime) then
                 local gain, start, ending = aura.gain, aura.start, aura.ending
                 local stagger = UnitStagger(target)
-                local rate = -1 * stagger / (ending - start)
+                local rate = (-1 * stagger) / (ending - start)
                 return TestValue(gain, ending, 0, ending, rate, comparator, limit)
             end
             return Compare(0, comparator, limit)
@@ -1726,33 +1718,33 @@ __exports.OvaleConditions = __class(nil, {
             local swing = positionalParams[1]
             local comparator, limit
             local start
-            if swing and swing == "main" or swing == "off" then
+            if (swing and swing == "main") or swing == "off" then
                 comparator, limit = positionalParams[2], positionalParams[3]
                 start = 0
             else
                 comparator, limit = positionalParams[1], positionalParams[2]
                 start = 0
             end
-            self.Ovale:OneTimeMessage("Warning: 'LastSwing()' is not implemented.")
+            OneTimeMessage("Warning: 'LastSwing()' is not implemented.")
             return TestValue(start, INFINITY, 0, start, 1, comparator, limit)
         end
         self.NextSwing = function(positionalParams, namedParams, atTime)
             local swing = positionalParams[1]
             local comparator, limit
             local ending
-            if swing and swing == "main" or swing == "off" then
+            if (swing and swing == "main") or swing == "off" then
                 comparator, limit = positionalParams[2], positionalParams[3]
                 ending = 0
             else
                 comparator, limit = positionalParams[1], positionalParams[2]
                 ending = 0
             end
-            self.Ovale:OneTimeMessage("Warning: 'NextSwing()' is not implemented.")
+            OneTimeMessage("Warning: 'NextSwing()' is not implemented.")
             return TestValue(0, ending, 0, ending, -1, comparator, limit)
         end
         self.Talent = function(positionalParams, namedParams, atTime)
             local talentId, yesno = positionalParams[1], positionalParams[2]
-            local boolean = (self.OvaleSpellBook:GetTalentPoints(talentId) > 0)
+            local boolean = self.OvaleSpellBook:GetTalentPoints(talentId) > 0
             return TestBoolean(boolean, yesno)
         end
         self.TalentPoints = function(positionalParams, namedParams, atTime)
@@ -1825,14 +1817,6 @@ __exports.OvaleConditions = __class(nil, {
             end
             return Compare(0, comparator, limit)
         end
-        self.TimeInCombat = function(positionalParams, namedParams, atTime)
-            local comparator, limit = positionalParams[1], positionalParams[2]
-            if self.OvaleFuture:IsInCombat(atTime) then
-                local start = self.OvaleFuture:GetState(atTime).combatStartTime
-                return TestValue(start, INFINITY, 0, start, 1, comparator, limit)
-            end
-            return Compare(0, comparator, limit)
-        end
         self.TimeSincePreviousSpell = function(positionalParams, namedParams, atTime)
             local spell, comparator, limit = positionalParams[1], positionalParams[2], positionalParams[3]
             local spellId = self.OvaleSpellBook:getKnownSpellId(spell)
@@ -1850,7 +1834,7 @@ __exports.OvaleConditions = __class(nil, {
         self.TimeToEclipse = function(positionalParams, namedParams, atTime)
             local _, comparator, limit = positionalParams[1], positionalParams[2], positionalParams[3]
             local value = 3600 * 24 * 7
-            self.Ovale:OneTimeMessage("Warning: 'TimeToEclipse()' is not implemented.")
+            OneTimeMessage("Warning: 'TimeToEclipse()' is not implemented.")
             return TestValue(0, INFINITY, value, atTime, -1, comparator, limit)
         end
         self.TimeToEnergy = function(positionalParams, namedParams, atTime)
@@ -1887,7 +1871,7 @@ __exports.OvaleConditions = __class(nil, {
         end
         self.TimeToSpell = function(positionalParams, namedParams, atTime)
             local _, comparator, limit = positionalParams[1], positionalParams[2], positionalParams[3]
-            self.Ovale:OneTimeMessage("Warning: 'TimeToSpell()' is not implemented.")
+            OneTimeMessage("Warning: 'TimeToSpell()' is not implemented.")
             return TestValue(0, INFINITY, 0, atTime, -1, comparator, limit)
         end
         self.TimeWithHaste = function(positionalParams, namedParams, atTime)
@@ -1929,7 +1913,7 @@ __exports.OvaleConditions = __class(nil, {
             for i = 1, numTrackingTypes, 1 do
                 local name, _, active = GetTrackingInfo(i)
                 if name and name == spellName then
-                    boolean = (active == 1)
+                    boolean = active == 1
                     break
                 end
             end
@@ -1995,7 +1979,7 @@ __exports.OvaleConditions = __class(nil, {
             return TestBoolean(charging, "yes")
         end
         self.IsBossFight = function(positionalParams, namedParams, atTime)
-            local bossEngaged = self.OvaleFuture:IsInCombat(atTime) and self.OvaleBossMod:IsBossEngaged(atTime)
+            local bossEngaged = self.OvaleBossMod:IsBossEngaged(atTime)
             return TestBoolean(bossEngaged, "yes")
         end
         self.Race = function(positionalParams, namedParams, atTime)
@@ -2003,7 +1987,7 @@ __exports.OvaleConditions = __class(nil, {
             local target = namedParams.target or "player"
             local _, targetRaceId = UnitRace(target)
             for _, v in ipairs(positionalParams) do
-                isRace = isRace or (v == targetRaceId)
+                isRace = isRace or v == targetRaceId
             end
             return TestBoolean(isRace, "yes")
         end
@@ -2042,7 +2026,7 @@ __exports.OvaleConditions = __class(nil, {
         self.HasDebuffType = function(positionalParams, namedParams, atTime)
             local target = self:ParseCondition(positionalParams, namedParams)
             for _, debuffType in ipairs(positionalParams) do
-                local aura = self.OvaleAura:GetAura(target, lower(debuffType), atTime, (target == "player" and "HARMFUL" or "HELPFUL"), false)
+                local aura = self.OvaleAura:GetAura(target, lower(debuffType), atTime, (target == "player" and "HARMFUL") or "HELPFUL", false)
                 if aura then
                     local gain, _, ending = aura.gain, aura.start, aura.ending
                     return gain, ending
@@ -2228,6 +2212,11 @@ __exports.OvaleConditions = __class(nil, {
 			local yesno = condition[1]
 			return TestBoolean(IsSwimming(), yesno)
 		end
+        self.message = function(positionalParameters)
+            OneTimeMessage(positionalParameters[1])
+            return ReturnConstant(0)
+        end
+        ovaleCondition:RegisterCondition("message", false, self.message)
         ovaleCondition:RegisterCondition("present", false, self.Present)
         ovaleCondition:RegisterCondition("stacktimeto", false, self.stackTimeTo)
         ovaleCondition:RegisterCondition("armorsetbonus", false, self.ArmorSetBonus)
@@ -2337,7 +2326,6 @@ __exports.OvaleConditions = __class(nil, {
         ovaleCondition:RegisterCondition("timetodie", false, self.TimeToDie)
         ovaleCondition:RegisterCondition("timetohealthpercent", false, self.TimeToHealthPercent)
         ovaleCondition:RegisterCondition("timetolifepercent", false, self.TimeToHealthPercent)
-        ovaleCondition:RegisterCondition("incombat", false, self.InCombat)
         ovaleCondition:RegisterCondition("inflighttotarget", false, self.InFlightToTarget)
         ovaleCondition:RegisterCondition("inrange", false, self.InRange)
         ovaleCondition:RegisterCondition("isaggroed", false, self.IsAggroed)
@@ -2475,7 +2463,6 @@ __exports.OvaleConditions = __class(nil, {
         ovaleCondition:RegisterCondition("ticksremaining", false, self.TicksRemaining)
         ovaleCondition:RegisterCondition("ticksremain", false, self.TicksRemaining)
         ovaleCondition:RegisterCondition("ticktimeremaining", false, self.TickTimeRemaining)
-        ovaleCondition:RegisterCondition("timeincombat", false, self.TimeInCombat)
         ovaleCondition:RegisterCondition("timesincepreviousspell", false, self.TimeSincePreviousSpell)
         ovaleCondition:RegisterCondition("timetobloodlust", false, self.TimeToBloodlust)
         ovaleCondition:RegisterCondition("timetoeclipse", false, self.TimeToEclipse)

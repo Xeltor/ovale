@@ -1,5 +1,4 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\FrameXML\UI.xsd">
-   <Script file="scripts\ovale_trinkets_mop.lua"/>
    <Script file="scripts\ovale_warrior_spells.lua"/>
    <Script file="scripts\ovale_warlock_spells.lua"/>
    <Script file="scripts\ovale_shaman_spells.lua"/>
@@ -10,7 +9,6 @@
    <Script file="scripts\ovale_mage_spells.lua"/>
    <Script file="scripts\ovale_hunter_spells.lua"/>
    <Script file="scripts\ovale_druid_spells.lua"/>
-   <Script file="scripts\ovale_trinkets_wod.lua"/>
    <Script file="scripts\ovale_demonhunter_spells.lua"/>
    <Script file="scripts\ovale_warrior.lua"/>
    <Script file="scripts\ovale_warlock.lua"/>
@@ -34,8 +32,6 @@
    <Script file="Stagger.lua"/>
    <Script file="SpellDamage.lua"/>
    <Script file="Recount.lua"/>
-   <Script file="LossOfControl.lua"/>
-   <Script file="Health.lua"/>
    <Script file="DemonHunterSoulFragments.lua"/>
    <Script file="DemonHunterSigils.lua"/>
    <Script file="DemonHunterDemonic.lua"/>
@@ -55,13 +51,17 @@
    <Script file="Enemies.lua"/>
    <Script file="Runes.lua"/>
    <Script file="BaseState.lua"/>
-   <Script file="Cooldown.lua"/>
+   <Script file="GUID.lua"/>
    <Script file="tools.lua"/>
+   <Script file="PoolGC.lua"/>
+   <Script file="LossOfControl.lua"/>
+   <Script file="Health.lua"/>
    <Script file="Data.lua"/>
    <Script file="Requirement.lua"/>
+   <Script file="combat.lua"/>
+   <Script file="Cooldown.lua"/>
    <Script file="PaperDoll.lua"/>
    <Script file="Equipment.lua"/>
-   <Script file="GUID.lua"/>
    <Script file="TimeSpan.lua"/>
    <Script file="Pool.lua"/>
    <Script file="simulationcraft\parser.lua"/>
@@ -78,6 +78,8 @@
    <Script file="Artifact.lua"/>
    <Script file="Scripts.lua"/>
    <Script file="DataBroker.lua"/>
+   <Script file="Profiler.lua"/>
+   <Script file="Options.lua"/>
    <Script file="SpellFlash.lua"/>
    <Script file="ActionBar.lua"/>
    <Script file="SpellBook.lua"/>
@@ -86,18 +88,15 @@
    <Script file="Stance.lua"/>
    <Script file="AST.lua"/>
    <Script file="simulationcraft\splitter.lua"/>
+   <Script file="simulationcraft\emiter.lua"/>
+   <Script file="conditions.lua"/>
    <Script file="BestAction.lua"/>
    <Script file="Compile.lua"/>
    <Script file="Aura.lua"/>
-   <Script file="Ovale.lua"/>
-   <Script file="simulationcraft\emiter.lua"/>
-   <Script file="conditions.lua"/>
-   <Script file="PoolGC.lua"/>
-   <Script file="Version.lua"/>
-   <Script file="Profiler.lua"/>
-   <Script file="Options.lua"/>
-   <Script file="Score.lua"/>
    <Script file="Debug.lua"/>
+   <Script file="Ovale.lua"/>
+   <Script file="Version.lua"/>
+   <Script file="Score.lua"/>
    <Script file="ioc.lua"/>
    <Script file="index.lua"/>
 </Ui>
